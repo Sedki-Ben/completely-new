@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+@layer base {
+  body {
+    @apply bg-gray-50 dark:bg-gray-900;
+  }
+}
+
+@layer components {
+  .ptc-newsletter {
+    @apply relative z-10;
+  }
+}

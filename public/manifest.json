@@ -1,0 +1,30 @@
+{
+  "short_name": "PTC",
+  "name": "Pure Tactical Cartel",
+  "icons": [
+    {
+      "src": "ptc.jpg",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/jpg"
+    },
+    {
+      "src": "ptc.jpg",
+      "type": "image/jpg",
+      "sizes": "192x192"
+    },
+    {
+      "src": "ptc.jpg",
+      "type": "image/jpg",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1e3a8a",
+  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "description": "Your comprehensive source for football analysis, stories, and insights",
+  "dir": "auto",
+  "lang": "en",
+  "categories": ["sports", "news", "entertainment"]
+}
