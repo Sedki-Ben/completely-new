@@ -25,5 +25,18 @@
   "Subscribe": "Subscribe",
   "Page Not Found": "Page Not Found",
   "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.": "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.",
-  "Back to Home": "Back to Home"
+  "Back to Home": "Back to Home",
+  "View All": "View All",
+  "Sign in to your account": "Sign in to your account",
+  "Create your account": "Create your account",
+  "Email": "Email",
+  "Password": "Password",
+  "Name": "Name",
+  "Sign Up": "Sign Up",
+  "Signing in...": "Signing in...",
+  "Signing up...": "Signing up...",
+  "Don't have an account?": "Don't have an account?",
+  "Already have an account?": "Already have an account?",
+  "Login failed": "Login failed",
+  "Registration failed": "Registration failed"
 } 

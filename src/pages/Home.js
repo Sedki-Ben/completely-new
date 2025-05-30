@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiHeart, FiMessageCircle, FiShare2, FiArrowRight } from 'react-icons/fi';
-import { getAllArticles, getArticlesByCategory } from '../data/articles';
+import { useTranslation } from 'react-i18next';
+import { getAllArticles, getArticlesByCategory, getLocalizedArticleContent, categoryTranslations } from '../data/articles';
 import Newsletter from '../components/Newsletter';
 
 function Home() {
+  const { t, i18n } = useTranslation();
   const analysisArticles = getArticlesByCategory('analysis');
   const storiesArticles = getArticlesByCategory('stories');
 
@@ -21,13 +23,13 @@ function Home() {
         <section className="mb-16">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-4xl font-serif font-bold text-gray-900 dark:text-white">
-              Analysis
+              {t('Analysis')}
             </h2>
             <Link 
               to="/analysis" 
               className="flex items-center text-blue-900 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
             >
-              View All <FiArrowRight className="ml-2" />
+              {t('Analysis')} <FiArrowRight className="ml-2" />
             </Link>
           </div>
           
@@ -38,18 +40,18 @@ function Home() {
                 <div className="aspect-w-16 aspect-h-9 mb-4">
                   <img
                     src={featuredAnalysis.image}
-                    alt={featuredAnalysis.translations.en.title}
+                    alt={getLocalizedArticleContent(featuredAnalysis, i18n.language).title}
                     className="w-full h-full object-cover rounded-lg"
                   />
                 </div>
                 <h3 className="text-2xl font-serif font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-900 dark:group-hover:text-blue-400 transition-colors">
-                  {featuredAnalysis.translations.en.title}
+                  {getLocalizedArticleContent(featuredAnalysis, i18n.language).title}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
-                  {featuredAnalysis.translations.en.excerpt}
+                  {getLocalizedArticleContent(featuredAnalysis, i18n.language).excerpt}
                 </p>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  By {featuredAnalysis.author} • {featuredAnalysis.date}
+                  {(i18n.language === 'ar' ? 'صدقي بن حوالة' : featuredAnalysis.author)} • {featuredAnalysis.date}
                 </div>
               </Link>
             </div>
@@ -64,19 +66,19 @@ function Home() {
                 >
                   <div className="flex-grow">
                     <h4 className="font-serif font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-900 dark:group-hover:text-blue-400 transition-colors">
-                      {article.translations.en.title}
+                      {getLocalizedArticleContent(article, i18n.language).title}
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
-                      {article.translations.en.excerpt}
+                      {getLocalizedArticleContent(article, i18n.language).excerpt}
                     </p>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      By {article.author} • {article.date}
+                      {(i18n.language === 'ar' ? 'صدقي بن حوالة' : article.author)} • {article.date}
                     </div>
                   </div>
                   <div className="flex-shrink-0 w-24 h-24">
                     <img
                       src={article.image}
-                      alt={article.translations.en.title}
+                      alt={getLocalizedArticleContent(article, i18n.language).title}
                       className="w-full h-full object-cover rounded-lg"
                     />
                   </div>
@@ -90,13 +92,13 @@ function Home() {
         <section className="mb-16">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-4xl font-serif font-bold text-gray-900 dark:text-white">
-              Stories
+              {categoryTranslations.stories[i18n.language]}
             </h2>
             <Link 
               to="/stories" 
               className="flex items-center text-blue-900 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
             >
-              View All <FiArrowRight className="ml-2" />
+              {t('View All')} <FiArrowRight className="ml-2" />
             </Link>
           </div>
           
@@ -107,18 +109,18 @@ function Home() {
                 <div className="aspect-w-16 aspect-h-9 mb-4">
                   <img
                     src={featuredStory.image}
-                    alt={featuredStory.translations.en.title}
+                    alt={getLocalizedArticleContent(featuredStory, i18n.language).title}
                     className="w-full h-full object-cover rounded-lg"
                   />
                 </div>
                 <h3 className="text-2xl font-serif font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-900 dark:group-hover:text-blue-400 transition-colors">
-                  {featuredStory.translations.en.title}
+                  {getLocalizedArticleContent(featuredStory, i18n.language).title}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
-                  {featuredStory.translations.en.excerpt}
+                  {getLocalizedArticleContent(featuredStory, i18n.language).excerpt}
                 </p>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  By {featuredStory.author} • {featuredStory.date}
+                  {(i18n.language === 'ar' ? 'صدقي بن حوالة' : featuredStory.author)} • {featuredStory.date}
                 </div>
               </Link>
             </div>
@@ -133,19 +135,19 @@ function Home() {
                 >
                   <div className="flex-grow">
                     <h4 className="font-serif font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-900 dark:group-hover:text-blue-400 transition-colors">
-                      {article.translations.en.title}
+                      {getLocalizedArticleContent(article, i18n.language).title}
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
-                      {article.translations.en.excerpt}
+                      {getLocalizedArticleContent(article, i18n.language).excerpt}
                     </p>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      By {article.author} • {article.date}
+                      {(i18n.language === 'ar' ? 'صدقي بن حوالة' : article.author)} • {article.date}
                     </div>
                   </div>
                   <div className="flex-shrink-0 w-24 h-24">
                     <img
                       src={article.image}
-                      alt={article.translations.en.title}
+                      alt={getLocalizedArticleContent(article, i18n.language).title}
                       className="w-full h-full object-cover rounded-lg"
                     />
                   </div>

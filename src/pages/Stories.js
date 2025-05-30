@@ -1,20 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiHeart, FiMessageCircle, FiShare2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
-import { getArticlesByCategory, getLocalizedArticleContent } from '../data/articles';
+import { getArticlesByCategory, getLocalizedArticleContent, categoryTranslations } from '../data/articles';
 import Newsletter from '../components/Newsletter';
+import Pagination from '../components/Pagination';
 
 function Stories() {
   const [activeTab, setActiveTab] = useState('latest');
   const [currentPage, setCurrentPage] = useState(1);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const articles = getArticlesByCategory('stories');
+
+  // Sorting logic
+  const sortedArticles = [...articles].sort((a, b) => {
+    if (activeTab === 'top') {
+      return b.likes - a.likes;
+    } else {
+      // latest
+      return new Date(b.date) - new Date(a.date);
+    }
+  });
 
   // Pagination logic
   const articlesPerPage = 5;
-  const totalPages = Math.ceil(articles.length / articlesPerPage);
-  const paginatedArticles = articles.slice((currentPage - 1) * articlesPerPage, currentPage * articlesPerPage);
+  const totalPages = Math.ceil(sortedArticles.length / articlesPerPage);
+  const paginatedArticles = sortedArticles.slice((currentPage - 1) * articlesPerPage, currentPage * articlesPerPage);
+
+  // Scroll to top on page change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
+
+  // Scroll to top on tab change
+  useEffect(() => {
+    setCurrentPage(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeTab]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -49,14 +71,15 @@ function Stories() {
       {/* Articles List */}
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {paginatedArticles.map((article) => {
-          const localizedContent = getLocalizedArticleContent(article);
+          const localizedContent = getLocalizedArticleContent(article, i18n.language);
+          const authorName = i18n.language === 'ar' ? 'صدقي بن حوالة' : article.author;
           return (
             <article key={article.id} className="py-8">
               <div className="flex items-start space-x-8">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-4 text-sm mb-2">
                     <span className="text-amber-700 dark:text-amber-400 font-medium">
-                      {article.category.toUpperCase()}
+                      {categoryTranslations[article.category]?.[i18n.language] || article.category}
                     </span>
                     <span className="text-gray-600 dark:text-gray-400">
                       {article.date}
@@ -75,14 +98,14 @@ function Stories() {
                   
                   <div className="flex items-center gap-4 text-sm">
                     <span className="text-gray-600 dark:text-gray-400">
-                      By {article.author}
+                      {authorName}
                     </span>
                     <div className="flex items-center space-x-4 text-gray-500 dark:text-gray-400">
                       <span className="flex items-center">
-                        <FiHeart className="mr-1 h-4 w-4" /> {article.likes}
+                        <FiHeart className={i18n.language === 'ar' ? 'mx-2 h-4 w-4' : 'mr-1 h-4 w-4'} />{article.likes}
                       </span>
                       <span className="flex items-center">
-                        <FiMessageCircle className="mr-1 h-4 w-4" /> {article.comments}
+                        <FiMessageCircle className={i18n.language === 'ar' ? 'mx-2 h-4 w-4' : 'mr-1 h-4 w-4'} />{article.comments}
                       </span>
                     </div>
                   </div>
@@ -103,21 +126,12 @@ function Stories() {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex justify-center mt-8 space-x-2">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-            <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border border-amber-700 dark:border-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-400
-                ${currentPage === page
-                  ? 'bg-amber-700 text-white dark:bg-amber-800'
-                  : 'text-amber-700 bg-white hover:bg-amber-50 dark:text-amber-300 dark:bg-gray-900 dark:hover:bg-amber-900'}
-              `}
-            >
-              {page}
-            </button>
-          ))}
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          variant="stories"
+        />
       )}
 
       {/* Newsletter Section */}

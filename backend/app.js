@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { i18nextMiddleware } = require('./utils/i18n');
 const { limiter, authLimiter, newsletterLimiter } = require('./middleware/rateLimiter');
+const path = require('path');
 
 const app = express();
 
@@ -41,6 +42,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/users', userRoutes);
+
+// Serve uploads directory as static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

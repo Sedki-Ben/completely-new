@@ -1,7 +1,7 @@
 import React from 'react';
 import { FiHeart, FiMessageCircle, FiShare2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
-import { getLocalizedArticleContent } from '../data/articles';
+import { getLocalizedArticleContent, categoryTranslations } from '../data/articles';
 import Newsletter from './Newsletter';
 
 function Article({ article }) {
@@ -44,6 +44,8 @@ function Article({ article }) {
 
   const theme = themeColors[article.category] || themeColors.default;
 
+  const authorName = i18n.language === 'ar' ? 'صدقي بن حوالة' : article.author;
+
   return (
     <article className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
       {/* Hero Image */}
@@ -62,7 +64,7 @@ function Article({ article }) {
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${theme.light}`}>
-              {t(article.category)}
+              {categoryTranslations[article.category]?.[i18n.language] || article.category}
             </span>
             <span className="text-gray-600 dark:text-gray-400">
               {article.date}
@@ -72,16 +74,14 @@ function Article({ article }) {
             {localizedContent.title}
           </h1>
           <div className="flex items-center gap-4">
-            <div className="flex items-center">
-              <img
-                src={article.authorImage || 'https://via.placeholder.com/40'}
-                alt={article.author}
-                className="w-10 h-10 rounded-full mr-3"
-              />
-              <span className="font-medium text-gray-900 dark:text-white">
-                {t('By')} {article.author}
-              </span>
-            </div>
+            <img
+              src={article.authorImage || 'https://via.placeholder.com/40'}
+              alt={article.author}
+              className="w-12 h-12 rounded-full object-cover object-center border-2 border-gray-200 dark:border-gray-700 mr-3"
+            />
+            <span className="font-medium text-gray-900 dark:text-white ml-2">
+              {authorName}
+            </span>
           </div>
         </div>
 
@@ -130,17 +130,17 @@ function Article({ article }) {
         {/* Article Footer */}
         <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <button className={`flex items-center space-x-2 text-gray-600 dark:text-gray-400 ${theme.hover}`}>
+            <div className="flex items-center gap-8">
+              <button className={`flex items-center gap-3 text-gray-600 dark:text-gray-400 ${theme.hover}`}>
                 <FiHeart className="w-5 h-5" />
                 <span>{article.likes}</span>
               </button>
-              <button className={`flex items-center space-x-2 text-gray-600 dark:text-gray-400 ${theme.hover}`}>
+              <button className={`flex items-center gap-3 text-gray-600 dark:text-gray-400 ${theme.hover}`}>
                 <FiMessageCircle className="w-5 h-5" />
                 <span>{article.comments}</span>
               </button>
             </div>
-            <button className={`flex items-center space-x-2 text-gray-600 dark:text-gray-400 ${theme.hover}`}>
+            <button className={`flex items-center gap-3 text-gray-600 dark:text-gray-400 ${theme.hover}`}>
               <FiShare2 className="w-5 h-5" />
               <span>{t('Share')}</span>
             </button>

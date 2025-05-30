@@ -1,45 +1,60 @@
 const express = require('express');
 const { check } = require('express-validator');
-const commentController = require('../controllers/commentController');
+const commentsController = require('../controllers/commentController');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
 
-// @route   POST /api/articles/:articleId/comments
+// @route   GET /api/comments/article/:articleId
+// @desc    Get all comments for an article
+// @access  Public
+router.get('/article/:articleId', commentsController.getArticleComments);
+
+// @route   GET /api/comments/:id/replies
+// @desc    Get replies to a comment
+// @access  Public
+router.get('/:id/replies', commentsController.getCommentReplies);
+
+// @route   POST /api/comments
 // @desc    Create a comment
 // @access  Private
-router.post('/:articleId/comments', [
+router.post('/', [
     auth,
-    [
-        check('content', 'Content is required').not().isEmpty(),
-        check('parentId', 'Parent comment ID must be valid if provided').optional().isMongoId()
-    ]
-], commentController.createComment);
+    check('content', 'Content is required').not().isEmpty().trim(),
+    check('articleId', 'Article ID is required').not().isEmpty(),
+    check('parentComment').optional().isMongoId()
+], commentsController.createComment);
 
-// @route   GET /api/articles/:articleId/comments
-// @desc    Get comments for an article
-// @access  Public
-router.get('/:articleId/comments', commentController.getComments);
-
-// @route   PUT /api/articles/:articleId/comments/:commentId
+// @route   PUT /api/comments/:id
 // @desc    Update a comment
 // @access  Private
-router.put('/:articleId/comments/:commentId', [
+router.put('/:id', [
     auth,
-    [
-        check('content', 'Content is required').not().isEmpty()
-    ]
-], commentController.updateComment);
+    check('content', 'Content is required').not().isEmpty().trim()
+], commentsController.updateComment);
 
-// @route   DELETE /api/articles/:articleId/comments/:commentId
+// @route   DELETE /api/comments/:id
 // @desc    Delete a comment
 // @access  Private
-router.delete('/:articleId/comments/:commentId', auth, commentController.deleteComment);
+router.delete('/:id', auth, commentsController.deleteComment);
 
-// @route   POST /api/articles/:articleId/comments/:commentId/like
-// @desc    Like/Unlike a comment
+// @route   POST /api/comments/:id/like
+// @desc    Toggle like on comment
 // @access  Private
-router.post('/:articleId/comments/:commentId/like', auth, commentController.toggleLike);
+router.post('/:id/like', auth, commentsController.toggleLike);
+
+// @route   GET /api/comments/:id/likes
+// @desc    Get users who liked the comment
+// @access  Public
+router.get('/:id/likes', commentsController.getCommentLikes);
+
+// @route   POST /api/comments/:id/report
+// @desc    Report a comment
+// @access  Private
+router.post('/:id/report', [
+    auth,
+    check('reason', 'Reason is required').not().isEmpty()
+], commentsController.reportComment);
 
 module.exports = router; 
  

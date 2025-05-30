@@ -1,30 +1,17 @@
 const rateLimit = require('express-rate-limit');
-const RedisStore = require('rate-limit-redis');
-const redisService = require('../utils/redisService');
 
-// Create a limiter with Redis store
+// Create a simple memory store limiter
 const limiter = rateLimit({
-    store: new RedisStore({
-        client: redisService.client,
-        prefix: 'rate-limit:',
-        // Optional settings
-        windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 100 // limit each IP to 100 requests per windowMs
-    }),
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
     message: {
         status: 'error',
         message: 'Too many requests from this IP, please try again after 15 minutes'
-    },
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false // Disable the `X-RateLimit-*` headers
+    }
 });
 
-// Create specific limiters for different routes
+// Auth limiter
 const authLimiter = rateLimit({
-    store: new RedisStore({
-        client: redisService.client,
-        prefix: 'auth-limit:'
-    }),
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 5, // limit each IP to 5 login attempts per hour
     message: {
@@ -33,11 +20,8 @@ const authLimiter = rateLimit({
     }
 });
 
+// Newsletter limiter
 const newsletterLimiter = rateLimit({
-    store: new RedisStore({
-        client: redisService.client,
-        prefix: 'newsletter-limit:'
-    }),
     windowMs: 24 * 60 * 60 * 1000, // 24 hours
     max: 3, // limit each IP to 3 newsletter subscriptions per day
     message: {

@@ -27,12 +27,9 @@ exports.register = async (req, res) => {
         }
 
         // Create new user
-        user = new User({
-            name,
-            email,
-            password,
-            language: language || 'en'
-        });
+        const userData = { name, email, password };
+        if (language) userData.language = language;
+        user = new User(userData);
 
         await user.save();
 
@@ -119,5 +116,45 @@ exports.updateLanguage = async (req, res) => {
         console.error('Update language error:', error);
         res.status(500).json({ message: 'Server error' });
     }
+};
+
+// Logout user
+exports.logout = (req, res) => {
+    res.json({ message: 'Logged out' });
+};
+
+// Update user profile
+exports.updateProfile = (req, res) => {
+    res.json({ message: 'Profile updated (stub)' });
+};
+
+// Change password
+exports.changePassword = (req, res) => {
+    res.json({ message: 'Password changed (stub)' });
+};
+
+// Forgot password
+exports.forgotPassword = (req, res) => {
+    res.json({ message: 'Password reset email sent (stub)' });
+};
+
+// Reset password
+exports.resetPassword = (req, res) => {
+    res.json({ message: 'Password reset (stub)' });
+};
+
+// Get all users (admin)
+exports.getAllUsers = (req, res) => {
+    res.json({ users: [] });
+};
+
+// Update user role (admin)
+exports.updateUserRole = (req, res) => {
+    res.json({ message: 'User role updated (stub)' });
+};
+
+// Delete user (admin)
+exports.deleteUser = (req, res) => {
+    res.json({ message: 'User deleted (stub)' });
 }; 
  

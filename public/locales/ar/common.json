@@ -1,6 +1,6 @@
 {
   "Home": "الرئيسية",
-  "Analysis": "تحليلات",
+  "Analysis": "تحليل",
   "Stories": "قصص",
   "Notable Work": "أعمال مميزة",
   "Archive": "الأرشيف",
@@ -25,5 +25,18 @@
   "Subscribe": "اشترك",
   "Page Not Found": "الصفحة غير موجودة",
   "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.": "الصفحة التي تبحث عنها قد تكون حذفت، تم تغيير اسمها، أو غير متاحة مؤقتاً.",
-  "Back to Home": "العودة للرئيسية"
+  "Back to Home": "العودة للرئيسية",
+  "View All": "عرض الكل",
+  "Sign in to your account": "تسجيل الدخول إلى حسابك",
+  "Create your account": "إنشاء حسابك",
+  "Email": "البريد الإلكتروني",
+  "Password": "كلمة المرور",
+  "Name": "الاسم",
+  "Sign Up": "إنشاء حساب",
+  "Signing in...": "جاري تسجيل الدخول...",
+  "Signing up...": "جاري إنشاء الحساب...",
+  "Don't have an account?": "ليس لديك حساب؟",
+  "Already have an account?": "لديك حساب بالفعل؟",
+  "Login failed": "فشل تسجيل الدخول",
+  "Registration failed": "فشل التسجيل"
 } 

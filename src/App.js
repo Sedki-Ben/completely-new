@@ -13,6 +13,10 @@ import Archive from './pages/Archive';
 import About from './pages/About';
 import ArticlePage from './pages/ArticlePage';
 import NotFound from './pages/NotFound';
+import AdminDashboard from './pages/AdminDashboard';
+import { AuthProvider } from './contexts/AuthContext';
+import SignIn from './pages/SignIn';
+import SignUp from './pages/SignUp';
 import './App.css';
 
 function AppContent() {
@@ -111,20 +115,20 @@ function AppContent() {
 
           {/* Utility Controls */}
           <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-end sm:absolute sm:top-4 sm:right-6">
-            <div className="flex items-center gap-2">
-              <LanguageSelector />
-              <ThemeToggle />
+            <div className="flex items-center gap-4" dir="ltr">
               <button className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300">
                 <FiSearch className="w-5 h-5" />
               </button>
+              <Link 
+                to="/signin" 
+                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-700 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-all duration-300 shadow-sm"
+              >
+                <FiUser className="w-4 h-4 mr-2" />
+                {t('Sign In')}
+              </Link>
+              <ThemeToggle />
+              <LanguageSelector />
             </div>
-            <Link 
-              to="/signin" 
-              className="flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-700 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-all duration-300 shadow-sm"
-            >
-              <FiUser className="w-4 h-4 mr-2" />
-              {t('Sign In')}
-            </Link>
           </div>
         </div>
       </header>
@@ -139,6 +143,9 @@ function AppContent() {
           <Route path="/archive" element={<Archive />} />
           <Route path="/about" element={<About />} />
           <Route path="/article/:id" element={<ArticlePage />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route path="/404" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -149,11 +156,13 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <AppContent />
-      </LanguageProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AppContent />
+        </LanguageProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

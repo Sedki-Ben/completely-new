@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
+import api from '../services/api';
 
 function Newsletter({ variant }) {
   const { t } = useTranslation();
   const location = useLocation();
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
   // Determine variant based on current route if not provided
   const getVariantFromPath = () => {
@@ -53,6 +58,29 @@ function Newsletter({ variant }) {
 
   const theme = themeClasses[currentVariant] || themeClasses.default;
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess(false);
+
+    try {
+      await api.post('/newsletter/subscribe', {
+        email,
+        preferences: {
+          type: currentVariant !== 'default' ? currentVariant : 'all'
+        }
+      });
+
+      setSuccess(true);
+      setEmail('');
+    } catch (err) {
+      setError(err.response?.data?.msg || t('Failed to subscribe. Please try again.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={`relative ptc-newsletter ${theme.container} px-6 py-8 md:px-10 rounded-xl shadow-lg dark:shadow-none`}>
       <div className="max-w-2xl mx-auto text-center">
@@ -62,19 +90,45 @@ function Newsletter({ variant }) {
         <p className={`${theme.text} mb-6 opacity-90`}>
           {t('Subscribe to our newsletter to receive the latest updates and exclusive content')}
         </p>
-        <form className="flex flex-col sm:flex-row gap-4 justify-center">
-          <input
-            type="email"
-            placeholder={t('Enter your email')}
-            className={`ptc-newsletter-input px-4 py-2 rounded-lg bg-white/80 dark:!bg-gray-800/80 border border-gray-200 dark:!border-gray-700 focus:outline-none focus:ring-2 ${theme.ring} flex-grow max-w-md placeholder-gray-500 dark:!placeholder-gray-400 text-gray-900 dark:!text-gray-100`}
-          />
-          <button
-            type="submit"
-            className={`ptc-newsletter-button px-6 py-2 ${theme.button} text-white rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg dark:shadow-none`}
-          >
-            {t('Subscribe')}
-          </button>
-        </form>
+        
+        {success ? (
+          <div className={`${theme.text} text-center`}>
+            <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-lg font-medium">
+              {t('Thank you for subscribing!')}
+            </p>
+            <p className="mt-2 opacity-90">
+              {t('Please check your email to confirm your subscription.')}
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 justify-center">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t('Enter your email')}
+              className={`ptc-newsletter-input px-4 py-2 rounded-lg bg-white/80 dark:!bg-gray-800/80 border border-gray-200 dark:!border-gray-700 focus:outline-none focus:ring-2 ${theme.ring} flex-grow max-w-md placeholder-gray-500 dark:!placeholder-gray-400 text-gray-900 dark:!text-gray-100`}
+              required
+              disabled={loading}
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className={`ptc-newsletter-button px-6 py-2 ${theme.button} text-white rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg dark:shadow-none disabled:opacity-50`}
+            >
+              {loading ? t('Subscribing...') : t('Subscribe')}
+            </button>
+          </form>
+        )}
+
+        {error && (
+          <p className="mt-4 text-red-500 dark:text-red-400">
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );

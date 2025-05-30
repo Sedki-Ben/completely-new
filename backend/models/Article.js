@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const articleSchema = new mongoose.Schema({
     title: {
@@ -10,64 +11,125 @@ const articleSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    summary: {
+    type: {
         type: String,
-        required: true,
-        maxLength: 200
+        enum: ['analysis', 'story', 'notable'],
+        required: true
+    },
+    slug: {
+        type: String,
+        unique: true
     },
     author: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    category: {
+    coverImage: {
+        type: String
+    },
+    excerpt: {
         type: String,
-        required: true,
-        enum: ['analysis', 'stories', 'notable-work']
+        maxLength: 300
     },
     tags: [{
         type: String,
         trim: true
     }],
-    image: {
-        url: String,
-        alt: String
+    likes: {
+        count: {
+            type: Number,
+            default: 0
+        },
+        users: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }]
     },
-    likes: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
+    shares: {
+        count: {
+            type: Number,
+            default: 0
+        },
+        platforms: {
+            twitter: { type: Number, default: 0 },
+            facebook: { type: Number, default: 0 },
+            linkedin: { type: Number, default: 0 }
+        }
+    },
     views: {
         type: Number,
         default: 0
     },
-    language: {
-        type: String,
-        enum: ['en', 'fr', 'ar'],
-        required: true
-    },
     status: {
         type: String,
         enum: ['draft', 'published', 'archived'],
-        default: 'draft'
+        default: 'published'
     },
     publishedAt: {
         type: Date
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
 // Add text index for search functionality
-articleSchema.index({ title: 'text', content: 'text', summary: 'text' });
+articleSchema.index({ title: 'text', content: 'text', excerpt: 'text' });
 
-// Virtual for comment count
-articleSchema.virtual('commentCount', {
+// Virtual for comments
+articleSchema.virtual('comments', {
     ref: 'Comment',
     localField: '_id',
-    foreignField: 'article',
-    count: true
+    foreignField: 'article'
 });
+
+// Generate slug before saving
+articleSchema.pre('save', function(next) {
+    if (this.isModified('title')) {
+        this.slug = slugify(this.title, {
+            lower: true,
+            strict: true
+        });
+    }
+    
+    if (this.status === 'published' && !this.publishedAt) {
+        this.publishedAt = new Date();
+    }
+    
+    next();
+});
+
+// Method to increment view count
+articleSchema.methods.incrementViews = async function() {
+    this.views += 1;
+    return this.save();
+};
+
+// Method to handle likes
+articleSchema.methods.toggleLike = async function(userId) {
+    const userIndex = this.likes.users.indexOf(userId);
+    
+    if (userIndex === -1) {
+        this.likes.users.push(userId);
+        this.likes.count += 1;
+    } else {
+        this.likes.users.splice(userIndex, 1);
+        this.likes.count -= 1;
+    }
+    
+    return this.save();
+};
+
+// Method to increment share count
+articleSchema.methods.incrementShare = async function(platform) {
+    if (this.shares.platforms[platform] !== undefined) {
+        this.shares.platforms[platform] += 1;
+        this.shares.count += 1;
+        return this.save();
+    }
+};
 
 const Article = mongoose.model('Article', articleSchema);
 

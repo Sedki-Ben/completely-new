@@ -150,5 +150,25 @@ exports.toggleLike = async (req, res) => {
         console.error('Toggle comment like error:', error);
         res.status(500).json({ message: 'Server error' });
     }
+};
+
+// Get all comments for an article
+exports.getArticleComments = (req, res) => {
+    res.json({ comments: [] });
+};
+
+// Get replies to a comment
+exports.getCommentReplies = (req, res) => {
+    res.json({ replies: [] });
+};
+
+// Get users who liked the comment
+exports.getCommentLikes = (req, res) => {
+    res.json({ likes: [] });
+};
+
+// Report a comment
+exports.reportComment = (req, res) => {
+    res.json({ message: 'Comment reported (stub)' });
 }; 
  

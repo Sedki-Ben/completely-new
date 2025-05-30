@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiHeart, FiMessageCircle, FiCalendar } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
-import { getAllArticles, getLocalizedArticleContent } from '../data/articles';
+import { getAllArticles, getLocalizedArticleContent, categoryTranslations } from '../data/articles';
 import Newsletter from '../components/Newsletter';
+import Pagination from '../components/Pagination';
 
 function Archive() {
   const [selectedYear, setSelectedYear] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const articles = getAllArticles() || [];
 
   // Safely get years from articles with proper date parsing
@@ -36,8 +37,16 @@ function Archive() {
   const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
   const paginatedArticles = filteredArticles.slice((currentPage - 1) * articlesPerPage, currentPage * articlesPerPage);
 
-  // Reset to page 1 when year changes
-  React.useEffect(() => { setCurrentPage(1); }, [selectedYear]);
+  // Scroll to top on page change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
+
+  // Scroll to top and reset page on year change
+  useEffect(() => {
+    setCurrentPage(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [selectedYear]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -75,7 +84,8 @@ function Archive() {
       {/* Articles List */}
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {paginatedArticles.map((article) => {
-          const localizedContent = getLocalizedArticleContent(article);
+          const localizedContent = getLocalizedArticleContent(article, i18n.language);
+          const authorName = i18n.language === 'ar' ? 'صدقي بن حوالة' : article.author;
           // Get the appropriate color based on category
           const categoryColors = {
             analysis: 'text-blue-700 dark:text-blue-400',
@@ -85,17 +95,13 @@ function Archive() {
           };
           const categoryColor = categoryColors[article.category] || categoryColors.archive;
 
-          // Get title and content safely
-          const title = localizedContent?.title || article.title;
-          const content = localizedContent?.content?.[0]?.content || article.excerpt || '';
-
           return (
             <article key={article.id} className="py-8">
               <div className="flex items-start space-x-8">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-4 text-sm mb-2">
                     <span className={`font-medium ${categoryColor}`}>
-                      {article.category.toUpperCase()}
+                      {categoryTranslations[article.category]?.[i18n.language] || article.category}
                     </span>
                     <span className="text-gray-600 dark:text-gray-400">
                       {article.date}
@@ -104,24 +110,24 @@ function Archive() {
                   
                   <Link to={`/article/${article.id}`}>
                     <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white mb-3 hover:text-green-700 dark:hover:text-green-400 transition-colors">
-                      {title}
+                      {localizedContent.title}
                     </h2>
                   </Link>
                   
                   <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3 font-sans text-base">
-                    {content}
+                    {localizedContent.content[0].content}
                   </p>
                   
                   <div className="flex items-center gap-4 text-sm">
                     <span className="text-gray-600 dark:text-gray-400">
-                      By {article.author}
+                      {authorName}
                     </span>
                     <div className="flex items-center space-x-4 text-gray-500 dark:text-gray-400">
                       <span className="flex items-center">
-                        <FiHeart className="mr-1 h-4 w-4" /> {article.likes}
+                        <FiHeart className={i18n.language === 'ar' ? 'mx-2 h-4 w-4' : 'mr-1 h-4 w-4'} />{article.likes}
                       </span>
                       <span className="flex items-center">
-                        <FiMessageCircle className="mr-1 h-4 w-4" /> {article.comments}
+                        <FiMessageCircle className={i18n.language === 'ar' ? 'mx-2 h-4 w-4' : 'mr-1 h-4 w-4'} />{article.comments}
                       </span>
                     </div>
                   </div>
@@ -130,7 +136,7 @@ function Archive() {
                 <div className="flex-shrink-0 w-48 h-32 overflow-hidden rounded-lg">
                   <img
                     src={article.image}
-                    alt={title}
+                    alt={localizedContent.title}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -149,21 +155,12 @@ function Archive() {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex justify-center mt-8 space-x-2">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-            <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border border-green-700 dark:border-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400
-                ${currentPage === page
-                  ? 'bg-green-700 text-white dark:bg-green-800'
-                  : 'text-green-700 bg-white hover:bg-green-50 dark:text-green-300 dark:bg-gray-900 dark:hover:bg-green-900'}
-              `}
-            >
-              {page}
-            </button>
-          ))}
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          variant="archive"
+        />
       )}
 
       {/* Newsletter Section */}

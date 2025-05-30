@@ -25,5 +25,18 @@
   "Subscribe": "S'abonner",
   "Page Not Found": "Page Non Trouvée",
   "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.": "La page que vous recherchez a peut-être été supprimée, renommée ou est temporairement indisponible.",
-  "Back to Home": "Retour à l'Accueil"
+  "Back to Home": "Retour à l'Accueil",
+  "View All": "Voir tout",
+  "Sign in to your account": "Connectez-vous à votre compte",
+  "Create your account": "Créez votre compte",
+  "Email": "E-mail",
+  "Password": "Mot de passe",
+  "Name": "Nom",
+  "Sign Up": "S'inscrire",
+  "Signing in...": "Connexion en cours...",
+  "Signing up...": "Inscription en cours...",
+  "Don't have an account?": "Vous n'avez pas de compte ?",
+  "Already have an account?": "Vous avez déjà un compte ?",
+  "Login failed": "Échec de la connexion",
+  "Registration failed": "Échec de l'inscription"
 } 

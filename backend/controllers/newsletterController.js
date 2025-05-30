@@ -130,41 +130,23 @@ exports.createNewsletter = async (req, res) => {
     }
 };
 
+// Get all subscribers (admin only)
+exports.getSubscribers = (req, res) => {
+    res.json({ subscribers: [] });
+};
+
 // Send newsletter (admin only)
-exports.sendNewsletter = async (req, res) => {
-    try {
-        const newsletter = await Newsletter.findById(req.params.id);
-        if (!newsletter) {
-            return res.status(404).json({ message: 'Newsletter not found' });
-        }
+exports.sendNewsletter = (req, res) => {
+    res.json({ message: 'Newsletter sent (stub)' });
+};
 
-        if (newsletter.status === 'sent') {
-            return res.status(400).json({ message: 'Newsletter already sent' });
-        }
+// Get newsletter stats (admin only)
+exports.getNewsletterStats = (req, res) => {
+    res.json({ stats: {} });
+};
 
-        // Get verified subscribers based on newsletter category
-        const subscribers = await Subscription.find({
-            isVerified: true,
-            [`preferences.${newsletter.category}`]: true
-        });
-
-        if (subscribers.length === 0) {
-            return res.status(400).json({ message: 'No subscribers found' });
-        }
-
-        // Send newsletter
-        await EmailService.sendNewsletterEmail(subscribers, newsletter);
-
-        // Update newsletter status
-        newsletter.status = 'sent';
-        newsletter.sentAt = Date.now();
-        newsletter.recipientCount = subscribers.length;
-        await newsletter.save();
-
-        res.json({ message: 'Newsletter sent successfully', recipientCount: subscribers.length });
-    } catch (error) {
-        console.error('Send newsletter error:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
+// Delete subscriber (admin only)
+exports.deleteSubscriber = (req, res) => {
+    res.json({ message: 'Subscriber deleted (stub)' });
 }; 
  

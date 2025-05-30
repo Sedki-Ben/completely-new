@@ -36,8 +36,27 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
+        enum: ['user', 'writer', 'admin'],
         default: 'user'
+    },
+    likedPosts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Article'
+    }],
+    profilePicture: {
+        type: String,
+        default: ''
+    },
+    bio: {
+        type: String,
+        maxLength: 500
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    lastLogin: {
+        type: Date
     }
 }, {
     timestamps: true
@@ -45,16 +64,25 @@ const userSchema = new mongoose.Schema({
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
-    const user = this;
-    if (user.isModified('password')) {
-        user.password = await bcrypt.hash(user.password, 8);
+    if (!this.isModified('password')) return next();
+    
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        next(error);
     }
-    next();
 });
 
 // Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
     return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Method to check if user has liked a post
+userSchema.methods.hasLiked = function(postId) {
+    return this.likedPosts.includes(postId);
 };
 
 const User = mongoose.model('User', userSchema);

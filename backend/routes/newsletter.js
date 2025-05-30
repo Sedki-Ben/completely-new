@@ -14,41 +14,53 @@ router.post('/subscribe', [
     check('preferences').optional().isObject()
 ], newsletterController.subscribe);
 
+// @route   POST /api/newsletter/unsubscribe
+// @desc    Unsubscribe from newsletter
+// @access  Public
+router.post('/unsubscribe', [
+    check('email', 'Please include a valid email').isEmail()
+], newsletterController.unsubscribe);
+
+// @route   PUT /api/newsletter/preferences
+// @desc    Update subscription preferences
+// @access  Public
+router.put('/preferences', [
+    check('email', 'Please include a valid email').isEmail(),
+    check('preferences', 'Preferences are required').isObject()
+], newsletterController.updatePreferences);
+
 // @route   GET /api/newsletter/verify/:token
-// @desc    Verify newsletter subscription
+// @desc    Verify subscription
 // @access  Public
 router.get('/verify/:token', newsletterController.verifySubscription);
 
-// @route   GET /api/newsletter/unsubscribe/:token
-// @desc    Unsubscribe from newsletter
-// @access  Public
-router.get('/unsubscribe/:token', newsletterController.unsubscribe);
+// Admin Routes
 
-// @route   PUT /api/newsletter/preferences/:token
-// @desc    Update subscription preferences
-// @access  Public
-router.put('/preferences/:token', [
-    check('preferences').isObject()
-], newsletterController.updatePreferences);
-
-// Admin routes
-// @route   POST /api/newsletter
-// @desc    Create newsletter
+// @route   GET /api/newsletter/subscribers
+// @desc    Get all subscribers (admin only)
 // @access  Private/Admin
-router.post('/', [
+router.get('/subscribers', [auth, isAdmin], newsletterController.getSubscribers);
+
+// @route   POST /api/newsletter/send
+// @desc    Send newsletter (admin only)
+// @access  Private/Admin
+router.post('/send', [
     auth,
     isAdmin,
-    [
-        check('subject', 'Subject is required').not().isEmpty(),
-        check('content', 'Content is required').not().isEmpty(),
-        check('category', 'Category is required').isIn(['weekly-digest', 'breaking-news', 'feature-article'])
-    ]
-], newsletterController.createNewsletter);
+    check('subject', 'Subject is required').not().isEmpty(),
+    check('content', 'Content is required').not().isEmpty(),
+    check('recipients').optional().isArray()
+], newsletterController.sendNewsletter);
 
-// @route   POST /api/newsletter/:id/send
-// @desc    Send newsletter
+// @route   GET /api/newsletter/stats
+// @desc    Get newsletter stats (admin only)
 // @access  Private/Admin
-router.post('/:id/send', [auth, isAdmin], newsletterController.sendNewsletter);
+router.get('/stats', [auth, isAdmin], newsletterController.getNewsletterStats);
+
+// @route   DELETE /api/newsletter/subscribers/:email
+// @desc    Delete subscriber (admin only)
+// @access  Private/Admin
+router.delete('/subscribers/:email', [auth, isAdmin], newsletterController.deleteSubscriber);
 
 module.exports = router; 
  
