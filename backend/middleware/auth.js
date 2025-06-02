@@ -13,7 +13,9 @@ module.exports = (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_here');
         
         // Add user from payload
-        req.user = decoded;
+        req.user = {
+            id: decoded.userId || decoded.user.id // Handle both formats
+        };
         next();
     } catch (error) {
         res.status(401).json({ message: 'Token is not valid' });

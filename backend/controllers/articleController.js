@@ -8,16 +8,52 @@ exports.createArticle = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.log('Validation errors:', errors.array());
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const articleData = {
-            ...req.body,
-            author: req.user.userId
-        };
-        if (req.file) {
-            articleData.coverImage = `/uploads/${req.file.filename}`;
+        console.log('Request body:', req.body);
+        console.log('User:', req.user);
+
+        // Extract and clean up the data
+        const { title, content, type, status = 'draft' } = req.body;
+        
+        // Handle tags - they might come as individual fields in FormData
+        const tags = [];
+        Object.keys(req.body).forEach(key => {
+            if (key.startsWith('tags[')) {
+                tags.push(req.body[key]);
+            }
+        });
+
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'User ID not found in request' });
         }
+
+        // Handle multiple images and their positions
+        const images = [];
+        if (req.files && req.files.length > 0) {
+            req.files.forEach((file, index) => {
+                const position = req.body[`imagePositions[${index}]`] || 0;
+                images.push({
+                    url: `/uploads/${file.filename}`,
+                    position: parseInt(position, 10),
+                    caption: req.body[`imageCaptions[${index}]`] || ''
+                });
+            });
+        }
+
+        const articleData = {
+            title,
+            content,
+            type,
+            status,
+            tags,
+            author: req.user.id,
+            images
+        };
+
+        console.log('Article data before save:', articleData);
 
         const article = new Article(articleData);
         await article.save();
@@ -41,7 +77,7 @@ exports.createArticle = async (req, res) => {
         res.status(201).json(article);
     } catch (error) {
         console.error('Create article error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', details: error.message });
     }
 };
 
@@ -109,7 +145,7 @@ exports.updateArticle = async (req, res) => {
         }
 
         // Check ownership
-        if (article.author.toString() !== req.user.userId) {
+        if (article.author.toString() !== req.user.id) {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
@@ -141,7 +177,7 @@ exports.deleteArticle = async (req, res) => {
         }
 
         // Check ownership
-        if (article.author.toString() !== req.user.userId) {
+        if (article.author.toString() !== req.user.id) {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
@@ -162,14 +198,14 @@ exports.toggleLike = async (req, res) => {
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        const likeIndex = article.likes.indexOf(req.user.userId);
+        const likeIndex = article.likes.indexOf(req.user.id);
 
         if (likeIndex > -1) {
             // Unlike
             article.likes.splice(likeIndex, 1);
         } else {
             // Like
-            article.likes.push(req.user.userId);
+            article.likes.push(req.user.id);
         }
 
         await article.save();

@@ -14,9 +14,9 @@ function Newsletter({ variant }) {
   // Determine variant based on current route if not provided
   const getVariantFromPath = () => {
     const path = location.pathname;
-    if (path.includes('/analysis')) return 'analysis';
-    if (path.includes('/stories')) return 'stories';
-    if (path.includes('/notable-work')) return 'notable-work';
+    if (path.includes('/etoile-du-sahel')) return 'etoile-du-sahel';
+    if (path.includes('/the-beautiful-game')) return 'the-beautiful-game';
+    if (path.includes('/all-sports-hub')) return 'all-sports-hub';
     if (path.includes('/archive')) return 'archive';
     return 'default';
   };
@@ -24,35 +24,35 @@ function Newsletter({ variant }) {
   const currentVariant = variant || getVariantFromPath();
 
   const themeClasses = {
-    analysis: {
-      container: '!bg-blue-100 dark:!bg-blue-900/30',
-      button: '!bg-blue-600 hover:!bg-blue-700 dark:!bg-blue-700 dark:hover:!bg-blue-800',
-      ring: '!ring-blue-500 dark:!ring-blue-400',
-      text: '!text-blue-900 dark:!text-blue-100'
+    'etoile-du-sahel': {
+      container: '!bg-red-100 dark:!bg-red-900/30',
+      button: '!bg-red-600 hover:!bg-red-700 dark:!bg-red-700 dark:hover:!bg-red-800',
+      ring: '!ring-red-500 dark:!ring-red-400',
+      text: '!text-red-900 dark:!text-red-100'
     },
-    stories: {
-      container: '!bg-amber-100 dark:!bg-amber-900/30',
-      button: '!bg-amber-600 hover:!bg-amber-700 dark:!bg-amber-700 dark:hover:!bg-amber-800',
-      ring: '!ring-amber-500 dark:!ring-amber-400',
-      text: '!text-amber-900 dark:!text-amber-100'
+    'the-beautiful-game': {
+      container: '!bg-green-100 dark:!bg-green-900/30',
+      button: '!bg-green-600 hover:!bg-green-700 dark:!bg-green-700 dark:hover:!bg-green-800',
+      ring: '!ring-green-500 dark:!ring-green-400',
+      text: '!text-green-900 dark:!text-green-100'
     },
-    'notable-work': {
+    'all-sports-hub': {
       container: '!bg-purple-100 dark:!bg-purple-900/30',
       button: '!bg-purple-600 hover:!bg-purple-700 dark:!bg-purple-700 dark:hover:!bg-purple-800',
       ring: '!ring-purple-500 dark:!ring-purple-400',
       text: '!text-purple-900 dark:!text-purple-100'
     },
-    archive: {
-      container: '!bg-emerald-100 dark:!bg-emerald-900/30',
-      button: '!bg-emerald-600 hover:!bg-emerald-700 dark:!bg-emerald-700 dark:hover:!bg-emerald-800',
-      ring: '!ring-emerald-500 dark:!ring-emerald-400',
-      text: '!text-emerald-900 dark:!text-emerald-100'
+    'archive': {
+      container: '!bg-yellow-100 dark:!bg-yellow-900/30',
+      button: '!bg-yellow-600 hover:!bg-yellow-700 dark:!bg-yellow-700 dark:hover:!bg-yellow-800',
+      ring: '!ring-yellow-500 dark:!ring-yellow-400',
+      text: '!text-yellow-900 dark:!text-yellow-100'
     },
     default: {
-      container: '!bg-slate-100 dark:!bg-slate-900/30',
-      button: '!bg-slate-600 hover:!bg-slate-700 dark:!bg-slate-700 dark:hover:!bg-slate-800',
-      ring: '!ring-slate-500 dark:!ring-slate-400',
-      text: '!text-slate-900 dark:!text-slate-100'
+      container: '!bg-gray-100 dark:!bg-gray-900/30',
+      button: '!bg-gray-600 hover:!bg-gray-700 dark:!bg-gray-700 dark:hover:!bg-gray-800',
+      ring: '!ring-gray-500 dark:!ring-gray-400',
+      text: '!text-gray-900 dark:!text-gray-100'
     }
   };
 

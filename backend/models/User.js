@@ -49,7 +49,7 @@ const userSchema = new mongoose.Schema({
     },
     bio: {
         type: String,
-        maxLength: 500
+        maxLength: 1000
     },
     createdAt: {
         type: Date,
@@ -57,6 +57,31 @@ const userSchema = new mongoose.Schema({
     },
     lastLogin: {
         type: Date
+    },
+    profileImage: {
+        type: String
+    },
+    dateOfBirth: {
+        type: Date
+    },
+    gender: {
+        type: String,
+        enum: ['male', 'female', 'other']
+    },
+    location: {
+        type: String
+    },
+    profession: {
+        type: String
+    },
+    website: {
+        type: String
+    },
+    twitter: {
+        type: String
+    },
+    linkedin: {
+        type: String
     }
 }, {
     timestamps: true

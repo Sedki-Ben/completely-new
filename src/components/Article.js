@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiHeart, FiMessageCircle, FiShare2 } from 'react-icons/fi';
+import { FiHeart, FiMessageCircle, FiShare2, FiBookmark } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import { getLocalizedArticleContent, categoryTranslations } from '../data/articles';
 import Newsletter from './Newsletter';
@@ -15,30 +15,35 @@ function Article({ article }) {
 
   // Theme colors based on article category
   const themeColors = {
-    analysis: {
-      light: 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100',
-      border: 'border-blue-900 dark:border-blue-600',
-      hover: 'hover:text-blue-900 dark:hover:text-blue-400'
+    'etoile-du-sahel': {
+      light: 'bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100',
+      border: 'border-red-900 dark:border-red-600',
+      hover: 'hover:text-red-900 dark:hover:text-red-400',
+      icon: 'text-red-500'
     },
-    stories: {
-      light: 'bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-100',
-      border: 'border-amber-900 dark:border-amber-600',
-      hover: 'hover:text-amber-900 dark:hover:text-amber-400'
+    'the-beautiful-game': {
+      light: 'bg-green-100 text-green-900 dark:bg-green-900 dark:text-green-100',
+      border: 'border-green-900 dark:border-green-600',
+      hover: 'hover:text-green-900 dark:hover:text-green-400',
+      icon: 'text-green-500'
     },
-    'notable-work': {
+    'all-sports-hub': {
       light: 'bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100',
       border: 'border-purple-900 dark:border-purple-600',
-      hover: 'hover:text-purple-900 dark:hover:text-purple-400'
+      hover: 'hover:text-purple-900 dark:hover:text-purple-400',
+      icon: 'text-purple-500'
     },
-    archive: {
-      light: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100',
-      border: 'border-emerald-900 dark:border-emerald-600',
-      hover: 'hover:text-emerald-900 dark:hover:text-emerald-400'
+    'archive': {
+      light: 'bg-yellow-100 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100',
+      border: 'border-yellow-900 dark:border-yellow-600',
+      hover: 'hover:text-yellow-900 dark:hover:text-yellow-400',
+      icon: 'text-yellow-500'
     },
     default: {
-      light: 'bg-slate-100 text-slate-900 dark:bg-slate-900 dark:text-slate-100',
-      border: 'border-slate-900 dark:border-slate-600',
-      hover: 'hover:text-slate-900 dark:hover:text-slate-400'
+      light: 'bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100',
+      border: 'border-gray-900 dark:border-gray-600',
+      hover: 'hover:text-gray-900 dark:hover:text-gray-400',
+      icon: 'text-gray-500'
     }
   };
 
@@ -63,7 +68,8 @@ function Article({ article }) {
         {/* Article Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${theme.light}`}>
+            <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${theme.light}`}>
+              <FiBookmark className={theme.icon} />
               {categoryTranslations[article.category]?.[i18n.language] || article.category}
             </span>
             <span className="text-gray-600 dark:text-gray-400">
@@ -132,16 +138,16 @@ function Article({ article }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
               <button className={`flex items-center gap-3 text-gray-600 dark:text-gray-400 ${theme.hover}`}>
-                <FiHeart className="w-5 h-5" />
+                <FiHeart className={`w-5 h-5 ${theme.icon}`} />
                 <span>{article.likes}</span>
               </button>
               <button className={`flex items-center gap-3 text-gray-600 dark:text-gray-400 ${theme.hover}`}>
-                <FiMessageCircle className="w-5 h-5" />
+                <FiMessageCircle className={`w-5 h-5 ${theme.icon}`} />
                 <span>{article.comments}</span>
               </button>
             </div>
             <button className={`flex items-center gap-3 text-gray-600 dark:text-gray-400 ${theme.hover}`}>
-              <FiShare2 className="w-5 h-5" />
+              <FiShare2 className={`w-5 h-5 ${theme.icon}`} />
               <span>{t('Share')}</span>
             </button>
           </div>

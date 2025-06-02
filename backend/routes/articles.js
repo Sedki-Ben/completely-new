@@ -5,20 +5,43 @@ const auth = require('../middleware/auth');
 const isWriter = require('../middleware/isWriter');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 const router = express.Router();
+
+// Create uploads directory if it doesn't exist
+const uploadDir = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Multer setup for image uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '../uploads/'));
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniqueSuffix + '-' + file.originalname);
     }
 });
-const upload = multer({ storage });
+
+const fileFilter = (req, file, cb) => {
+    // Accept images only
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+        return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+};
+
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+        files: 10 // Maximum 10 files per request
+    }
+});
 
 // @route   GET /api/articles
 // @desc    Get all articles with filters
@@ -26,10 +49,10 @@ const upload = multer({ storage });
 router.get('/', articlesController.getArticles);
 
 // @route   GET /api/articles/:type
-// @desc    Get articles by type (analysis, story, notable)
+// @desc    Get articles by type (etoile-du-sahel, the-beautiful-game, all-sports-hub)
 // @access  Public
 router.get('/type/:type', [
-    check('type').isIn(['analysis', 'story', 'notable'])
+    check('type').isIn(['etoile-du-sahel', 'the-beautiful-game', 'all-sports-hub'])
 ], articlesController.getArticlesByType);
 
 // @route   GET /api/articles/slug/:slug
@@ -43,13 +66,15 @@ router.get('/slug/:slug', articlesController.getArticleBySlug);
 router.post('/',
     auth,
     isWriter,
-    upload.single('image'),
+    upload.array('images', 10), // Allow up to 10 images
     [
         check('title', 'Title is required').not().isEmpty(),
         check('content', 'Content is required').not().isEmpty(),
-        check('type').isIn(['analysis', 'story', 'notable']),
-        check('tags').optional().isArray(),
-        check('status').optional().isIn(['draft', 'published', 'archived'])
+        check('type').isIn(['etoile-du-sahel', 'the-beautiful-game', 'all-sports-hub']),
+        check('tags.*').optional().isString(),
+        check('status').optional().isIn(['draft', 'published', 'archived']),
+        check('imagePositions.*').optional().isNumeric(),
+        check('imageCaptions.*').optional().isString()
     ],
     articlesController.createArticle
 );
@@ -60,13 +85,15 @@ router.post('/',
 router.put('/:id',
     auth,
     isWriter,
-    upload.single('image'),
+    upload.array('images', 10),
     [
         check('title').optional().not().isEmpty(),
         check('content').optional().not().isEmpty(),
-        check('type').optional().isIn(['analysis', 'story', 'notable']),
+        check('type').optional().isIn(['etoile-du-sahel', 'the-beautiful-game', 'all-sports-hub']),
         check('tags').optional().isArray(),
-        check('status').optional().isIn(['draft', 'published', 'archived'])
+        check('status').optional().isIn(['draft', 'published', 'archived']),
+        check('imagePositions.*').optional().isNumeric(),
+        check('imageCaptions.*').optional().isString()
     ],
     articlesController.updateArticle
 );

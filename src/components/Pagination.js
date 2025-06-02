@@ -5,25 +5,25 @@ const Pagination = ({ currentPage, totalPages, onPageChange, variant = 'default'
     const { t, i18n } = useTranslation();
 
     const themeClasses = {
-        analysis: {
-            active: 'bg-blue-600 text-white',
-            hover: 'hover:bg-blue-100 dark:hover:bg-blue-900/30',
-            text: 'text-blue-600 dark:text-blue-400'
+        'etoile-du-sahel': {
+            active: 'bg-red-600 text-white',
+            hover: 'hover:bg-red-100 dark:hover:bg-red-900/30',
+            text: 'text-red-600 dark:text-red-400'
         },
-        stories: {
-            active: 'bg-amber-600 text-white',
-            hover: 'hover:bg-amber-100 dark:hover:bg-amber-900/30',
-            text: 'text-amber-600 dark:text-amber-400'
+        'the-beautiful-game': {
+            active: 'bg-green-600 text-white',
+            hover: 'hover:bg-green-100 dark:hover:bg-green-900/30',
+            text: 'text-green-600 dark:text-green-400'
         },
-        'notable-work': {
+        'all-sports-hub': {
             active: 'bg-purple-600 text-white',
             hover: 'hover:bg-purple-100 dark:hover:bg-purple-900/30',
             text: 'text-purple-600 dark:text-purple-400'
         },
         archive: {
-            active: 'bg-emerald-600 text-white',
-            hover: 'hover:bg-emerald-100 dark:hover:bg-emerald-900/30',
-            text: 'text-emerald-600 dark:text-emerald-400'
+            active: 'bg-yellow-600 text-white',
+            hover: 'hover:bg-yellow-100 dark:hover:bg-yellow-900/30',
+            text: 'text-yellow-600 dark:text-yellow-400'
         },
         default: {
             active: 'bg-slate-600 text-white',

@@ -4,10 +4,26 @@ import article3Image from '../assets/images/articles/premier-league.png';
 import sedkiImage from '../assets/images/bild3.jpg';
 
 export const categoryTranslations = {
-  analysis: { en: 'Analysis', fr: 'Analyse', ar: 'تحليل' },
-  stories: { en: 'Stories', fr: 'Histoires', ar: 'قصص' },
-  'notable-work': { en: 'Notable Work', fr: 'Travail Remarquable', ar: 'أعمال بارزة' },
-  archive: { en: 'Archive', fr: 'Archives', ar: 'الأرشيف' },
+  'etoile-du-sahel': { 
+    en: 'Etoile Du Sahel', 
+    fr: 'Étoile du Sahel', 
+    ar: 'النجم الساحلي' 
+  },
+  'the-beautiful-game': { 
+    en: 'The Beautiful Game', 
+    fr: 'Le Beau Jeu', 
+    ar: 'اللعبة الجميلة' 
+  },
+  'all-sports-hub': { 
+    en: 'All-Sports Hub', 
+    fr: 'Hub Tous Sports', 
+    ar: 'مركز كل الرياضات' 
+  },
+  archive: { 
+    en: 'Archive', 
+    fr: 'Archives', 
+    ar: 'الأرشيف' 
+  },
 };
 
 export const articles = [
@@ -92,9 +108,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 15, 2024",
     image: article1Image,
-    category: "analysis",
-    likes: 245,
-    comments: 58
+    category: "etoile-du-sahel",
+    likes: 0,
+    comments: 0
   },
   {
         id: 2,
@@ -173,9 +189,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 10, 2024",
     image: article2Image,
-    category: "stories",
-    likes: 189,
-    comments: 42
+    category: "the-beautiful-game",
+    likes: 0,
+    comments: 0
   },
   {
         id: 3,
@@ -254,10 +270,10 @@ export const articles = [
     date: "January 5, 2024",
     authorImage: sedkiImage,
     image: article3Image,
-    category: "analysis",
+    category: "etoile-du-sahel",
     excerpt: "Why this might be the closest title race in recent memory",
-    likes: 312,
-    comments: 76
+    likes: 0,
+    comments: 0
   },
   {
     id: 4,
@@ -297,9 +313,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "December 15, 2023",
     image: article1Image,
-    category: "notable-work",
-    likes: 423,
-    comments: 89
+    category: "the-beautiful-game",
+    likes: 0,
+    comments: 0
   },
   {
     id: 5,
@@ -378,9 +394,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "December 20, 2023",
     image: article2Image,
-    category: "analysis",
-    likes: 210,
-    comments: 54
+    category: "all-sports-hub",
+    likes: 0,
+    comments: 0
   },
   {
     id: 6,
@@ -471,9 +487,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 20, 2024",
     image: article2Image,
-    category: "stories",
-    likes: 178,
-    comments: 45
+    category: "the-beautiful-game",
+    likes: 0,
+    comments: 0
   },
   {
     id: 7,
@@ -564,9 +580,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 18, 2024",
     image: article1Image,
-    category: "stories",
-    likes: 203,
-    comments: 67
+    category: "all-sports-hub",
+    likes: 0,
+    comments: 0
   },
   {
     id: 8,
@@ -657,9 +673,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 16, 2024",
     image: article3Image,
-    category: "analysis",
-    likes: 289,
-    comments: 82
+    category: "etoile-du-sahel",
+    likes: 0,
+    comments: 0
   },
   {
     id: 9,
@@ -699,9 +715,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 22, 2024",
     image: article1Image,
-    category: "analysis",
-    likes: 156,
-    comments: 42
+    category: "etoile-du-sahel",
+    likes: 0,
+    comments: 0
   },
   {
     id: 10,
@@ -741,9 +757,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 21, 2024",
     image: article2Image,
-    category: "analysis",
-    likes: 189,
-    comments: 53
+    category: "etoile-du-sahel",
+    likes: 0,
+    comments: 0
   },
   {
     id: 11,
@@ -783,9 +799,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 19, 2024",
     image: article3Image,
-    category: "analysis",
-    likes: 234,
-    comments: 67
+    category: "all-sports-hub",
+    likes: 0,
+    comments: 0
   },
   {
     id: 12,
@@ -825,9 +841,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 17, 2024",
     image: article1Image,
-    category: "analysis",
-    likes: 167,
-    comments: 38
+    category: "etoile-du-sahel",
+    likes: 0,
+    comments: 0
   },
   {
     id: 13,
@@ -867,9 +883,9 @@ export const articles = [
     authorImage: sedkiImage,
       date: "January 15, 2024",
     image: article2Image,
-    category: "analysis",
-    likes: 198,
-    comments: 45
+    category: "etoile-du-sahel",
+    likes: 0,
+    comments: 0
   },
   {
     id: 14,
@@ -909,9 +925,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 21, 2024",
     image: article3Image,
-    category: "stories",
-    likes: 312,
-    comments: 89
+    category: "the-beautiful-game",
+    likes: 0,
+    comments: 0
   },
   {
     id: 15,
@@ -951,9 +967,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 20, 2024",
     image: article1Image,
-    category: "stories",
-    likes: 145,
-    comments: 34
+    category: "the-beautiful-game",
+    likes: 0,
+    comments: 0
   },
   {
     id: 16,
@@ -993,9 +1009,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 19, 2024",
     image: article2Image,
-    category: "stories",
-    likes: 267,
-    comments: 73
+    category: "the-beautiful-game",
+    likes: 0,
+    comments: 0
   },
   {
     id: 17,
@@ -1035,9 +1051,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 18, 2024",
     image: article3Image,
-    category: "stories",
-    likes: 189,
-    comments: 45
+    category: "the-beautiful-game",
+    likes: 0,
+    comments: 0
   },
   {
     id: 18,
@@ -1077,9 +1093,9 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 17, 2024",
     image: article1Image,
-    category: "stories",
-    likes: 223,
-    comments: 58
+    category: "all-sports-hub",
+    likes: 0,
+    comments: 0
   }
 ].map(article => ({
   ...article,

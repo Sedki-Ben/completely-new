@@ -50,7 +50,7 @@ function Archive() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-serif font-bold text-gray-900 dark:text-white mb-8">
+      <h1 className="text-4xl font-serif font-bold text-yellow-900 dark:text-yellow-400 mb-8">
         {t('Archive')}
       </h1>
 
@@ -60,8 +60,8 @@ function Archive() {
           onClick={() => setSelectedYear('all')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             selectedYear === 'all'
-              ? 'bg-green-700 text-white dark:bg-green-800'
-              : 'text-gray-600 hover:bg-green-50 dark:text-gray-300 dark:hover:bg-gray-800'
+              ? 'bg-yellow-900 text-white dark:bg-yellow-800'
+              : 'text-gray-600 hover:bg-yellow-50 dark:text-gray-300 dark:hover:bg-yellow-900/10'
           }`}
         >
           {t('All Years')}
@@ -72,8 +72,8 @@ function Archive() {
             onClick={() => setSelectedYear(year.toString())}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               selectedYear === year.toString()
-                ? 'bg-green-700 text-white dark:bg-green-800'
-                : 'text-gray-600 hover:bg-green-50 dark:text-gray-300 dark:hover:bg-gray-800'
+                ? 'bg-yellow-900 text-white dark:bg-yellow-800'
+                : 'text-gray-600 hover:bg-yellow-50 dark:text-gray-300 dark:hover:bg-yellow-900/10'
             }`}
           >
             {year}
@@ -88,10 +88,10 @@ function Archive() {
           const authorName = i18n.language === 'ar' ? 'صدقي بن حوالة' : article.author;
           // Get the appropriate color based on category
           const categoryColors = {
-            analysis: 'text-blue-700 dark:text-blue-400',
-            stories: 'text-amber-700 dark:text-amber-400',
-            notable: 'text-purple-700 dark:text-purple-400',
-            archive: 'text-green-700 dark:text-green-400'
+            'etoile-du-sahel': 'text-red-700 dark:text-red-400',
+            'the-beautiful-game': 'text-green-700 dark:text-green-400',
+            'all-sports-hub': 'text-purple-700 dark:text-purple-400',
+            'archive': 'text-yellow-700 dark:text-yellow-400'
           };
           const categoryColor = categoryColors[article.category] || categoryColors.archive;
 
@@ -109,7 +109,7 @@ function Archive() {
                   </div>
                   
                   <Link to={`/article/${article.id}`}>
-                    <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white mb-3 hover:text-green-700 dark:hover:text-green-400 transition-colors">
+                    <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white mb-3 hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors">
                       {localizedContent.title}
                     </h2>
                   </Link>

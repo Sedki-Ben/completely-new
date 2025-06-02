@@ -2,18 +2,31 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const session = require('express-session');
 
 // Import routes
 const authRoutes = require('./routes/auth');
 const articleRoutes = require('./routes/articles');
 const commentRoutes = require('./routes/comments');
 const newsletterRoutes = require('./routes/newsletter');
+const analyticsRoutes = require('./routes/analytics');
 
 // Load environment variables
 dotenv.config();
 
 // Create Express app
 const app = express();
+
+// Session configuration
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
 
 // Middleware
 app.use(cors());
@@ -31,8 +44,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/football_
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
-app.use('/api/articles', commentRoutes); // Comments are nested under articles
+app.use('/api/comments', commentRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

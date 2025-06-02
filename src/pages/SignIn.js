@@ -53,15 +53,15 @@ const SignIn = () => {
             dir="auto"
           />
           <div className="relative">
-            <input
+          <input
               type={showPassword ? "text" : "password"}
               className="border border-purple-300 dark:border-purple-700 bg-white/70 dark:bg-slate-800/70 p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-600 transition placeholder-gray-400 dark:placeholder-gray-500 text-purple-900 dark:text-purple-100"
               placeholder={t('Password')}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
               dir="auto"
-            />
+          />
             <button
               type="button"
               onClick={togglePasswordVisibility}

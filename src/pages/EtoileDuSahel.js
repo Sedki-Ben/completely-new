@@ -22,7 +22,7 @@ function EtoileDuSahel() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-serif font-bold text-gray-900 dark:text-white mb-8">
+      <h1 className="text-4xl font-serif font-bold text-red-900 dark:text-red-400 mb-8">
         {t('Etoile Du Sahel')}
       </h1>
 
@@ -32,8 +32,8 @@ function EtoileDuSahel() {
           onClick={() => setActiveTab('latest')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeTab === 'latest'
-              ? 'bg-blue-900 text-white dark:bg-blue-800'
-              : 'text-gray-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-gray-800'
+              ? 'bg-red-900 text-white dark:bg-red-800'
+              : 'text-gray-600 hover:bg-red-50 dark:text-gray-300 dark:hover:bg-red-900/10'
           }`}
         >
           {t('Latest')}
@@ -42,8 +42,8 @@ function EtoileDuSahel() {
           onClick={() => setActiveTab('top')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeTab === 'top'
-              ? 'bg-blue-900 text-white dark:bg-blue-800'
-              : 'text-gray-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-gray-800'
+              ? 'bg-red-900 text-white dark:bg-red-800'
+              : 'text-gray-600 hover:bg-red-50 dark:text-gray-300 dark:hover:bg-red-900/10'
           }`}
         >
           {t('Top')}

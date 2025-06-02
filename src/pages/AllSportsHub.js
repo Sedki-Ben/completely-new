@@ -5,10 +5,10 @@ import ArticleCard from '../components/ArticleCard';
 import Newsletter from '../components/Newsletter';
 import Pagination from '../components/Pagination';
 
-function EtoileDuSahel() {
+function AllSportsHub() {
   const [activeTab, setActiveTab] = useState('latest');
   const { t } = useTranslation();
-  const articles = getArticlesByCategory('etoile-du-sahel');
+  const articles = getArticlesByCategory('all-sports-hub');
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 6;
 
@@ -22,8 +22,8 @@ function EtoileDuSahel() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-serif font-bold text-gray-900 dark:text-white mb-8">
-        {t('Etoile Du Sahel')}
+      <h1 className="text-4xl font-serif font-bold text-purple-900 dark:text-purple-400 mb-8">
+        {t('All-Sports Hub')}
       </h1>
 
       {/* Tab Navigation */}
@@ -32,8 +32,8 @@ function EtoileDuSahel() {
           onClick={() => setActiveTab('latest')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeTab === 'latest'
-              ? 'bg-blue-900 text-white dark:bg-blue-800'
-              : 'text-gray-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-gray-800'
+              ? 'bg-purple-900 text-white dark:bg-purple-800'
+              : 'text-gray-600 hover:bg-purple-50 dark:text-gray-300 dark:hover:bg-purple-900/10'
           }`}
         >
           {t('Latest')}
@@ -42,8 +42,8 @@ function EtoileDuSahel() {
           onClick={() => setActiveTab('top')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeTab === 'top'
-              ? 'bg-blue-900 text-white dark:bg-blue-800'
-              : 'text-gray-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-gray-800'
+              ? 'bg-purple-900 text-white dark:bg-purple-800'
+              : 'text-gray-600 hover:bg-purple-50 dark:text-gray-300 dark:hover:bg-purple-900/10'
           }`}
         >
           {t('Top')}
@@ -53,7 +53,7 @@ function EtoileDuSahel() {
       {/* Articles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
         {currentArticles.map((article) => (
-          <ArticleCard key={article.id} article={article} variant="etoile-du-sahel" />
+          <ArticleCard key={article.id} article={article} variant="all-sports-hub" />
         ))}
       </div>
 
@@ -63,16 +63,16 @@ function EtoileDuSahel() {
           currentPage={currentPage}
           totalPages={Math.ceil(articles.length / articlesPerPage)}
           onPageChange={paginate}
-          variant="etoile-du-sahel"
+          variant="all-sports-hub"
         />
       </div>
 
       {/* Newsletter */}
       <div className="mt-12">
-        <Newsletter variant="etoile-du-sahel" />
+        <Newsletter variant="all-sports-hub" />
       </div>
     </div>
   );
 }
 
-export default EtoileDuSahel; 
+export default AllSportsHub; 

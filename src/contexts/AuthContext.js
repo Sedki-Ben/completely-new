@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import api from '../services/api';
+import axios from 'axios';
 
 const AuthContext = createContext(null);
 
@@ -15,6 +16,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         checkAuth();
@@ -23,16 +25,16 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
         try {
             const token = localStorage.getItem('token');
-            if (!token) {
-                setLoading(false);
-                return;
-            }
-
+            if (token) {
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             const response = await api.get('/auth/me');
             setUser(response.data);
+                setIsAuthenticated(true);
+            }
         } catch (err) {
             console.error('Auth check failed:', err);
             localStorage.removeItem('token');
+            delete axios.defaults.headers.common['Authorization'];
         } finally {
             setLoading(false);
         }
@@ -45,7 +47,9 @@ export const AuthProvider = ({ children }) => {
             const { token, user: userData } = response.data;
             
             localStorage.setItem('token', token);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             setUser(userData);
+            setIsAuthenticated(true);
             
             return userData;
         } catch (err) {
@@ -61,7 +65,9 @@ export const AuthProvider = ({ children }) => {
             const { token, user: newUser } = response.data;
             
             localStorage.setItem('token', token);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             setUser(newUser);
+            setIsAuthenticated(true);
             
             return newUser;
         } catch (err) {
@@ -77,14 +83,19 @@ export const AuthProvider = ({ children }) => {
             console.error('Logout error:', err);
         } finally {
             localStorage.removeItem('token');
+            delete axios.defaults.headers.common['Authorization'];
             setUser(null);
+            setIsAuthenticated(false);
         }
     };
 
-    const updateProfile = async (profileData) => {
+    const updateProfile = async (formData) => {
         try {
-            setError(null);
-            const response = await api.put('/auth/profile', profileData);
+            const response = await api.put('/auth/profile', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             setUser(response.data);
             return response.data;
         } catch (err) {
@@ -127,6 +138,7 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         error,
+        isAuthenticated,
         login,
         register,
         logout,
@@ -134,7 +146,6 @@ export const AuthProvider = ({ children }) => {
         changePassword,
         forgotPassword,
         resetPassword,
-        isAuthenticated: !!user,
         isWriter: user?.role === 'writer' || user?.role === 'admin',
         isAdmin: user?.role === 'admin'
     };

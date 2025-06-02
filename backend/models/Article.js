@@ -13,7 +13,7 @@ const articleSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['analysis', 'story', 'notable'],
+        enum: ['etoile-du-sahel', 'the-beautiful-game', 'all-sports-hub'],
         required: true
     },
     slug: {
@@ -25,9 +25,19 @@ const articleSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    coverImage: {
+    images: [{
+        url: {
+            type: String,
+            required: true
+        },
+        position: {
+            type: Number,
+            default: 0
+        },
+        caption: {
         type: String
-    },
+        }
+    }],
     excerpt: {
         type: String,
         maxLength: 300
