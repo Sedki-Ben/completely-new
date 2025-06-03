@@ -1,51 +1,110 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 
-const articleSchema = new mongoose.Schema({
-    title: {
+const contentBlockSchema = new mongoose.Schema({
+    type: {
         type: String,
         required: true,
-        trim: true
+        enum: ['paragraph', 'heading', 'quote', 'image', 'image-group', 'list']
     },
     content: {
         type: String,
         required: true
     },
-    type: {
+    metadata: {
+        level: Number, // For headings (h2, h3, etc.)
+        source: String, // For quotes
+        caption: String, // For images
+        alignment: {
+            type: String,
+            enum: ['left', 'center', 'right', 'justify']
+        },
+        style: {
+            margins: {
+                top: Number,
+                bottom: Number
+            },
+            textColor: String,
+            backgroundColor: String
+        },
+        listType: {
+            type: String,
+            enum: ['bullet', 'numbered']
+        },
+        images: [{
+            url: String,
+            caption: String,
+            alignment: String,
+            width: Number,
+            height: Number
+        }]
+    }
+});
+
+const translationSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true
+    },
+    excerpt: {
+        type: String,
+        required: true
+    },
+    content: {
+        type: [contentBlockSchema],
+        required: true,
+        default: []
+    },
+    // For backward compatibility
+    legacyContent: {
+        type: String
+    }
+});
+
+const articleSchema = new mongoose.Schema({
+    translations: {
+        en: {
+            type: translationSchema,
+            required: true
+        },
+        ar: {
+            type: translationSchema,
+            required: true
+        }
+    },
+    author: {
+        type: String,
+        required: true
+    },
+    authorImage: {
+        type: String,
+        required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    },
+    image: {
+        type: String,
+        required: true
+    },
+    category: {
         type: String,
         enum: ['etoile-du-sahel', 'the-beautiful-game', 'all-sports-hub'],
         required: true
     },
-    slug: {
+    status: {
         type: String,
-        unique: true
+        enum: ['draft', 'published', 'archived'],
+        default: 'published'
     },
-    author: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+    publishedAt: {
+        type: Date
     },
-    images: [{
-        url: {
-            type: String,
-            required: true
-        },
-        position: {
-            type: Number,
-            default: 0
-        },
-        caption: {
-        type: String
-        }
-    }],
-    excerpt: {
-        type: String,
-        maxLength: 300
+    views: {
+        type: Number,
+        default: 0
     },
-    tags: [{
-        type: String,
-        trim: true
-    }],
     likes: {
         count: {
             type: Number,
@@ -67,17 +126,9 @@ const articleSchema = new mongoose.Schema({
             linkedin: { type: Number, default: 0 }
         }
     },
-    views: {
-        type: Number,
-        default: 0
-    },
-    status: {
+    slug: {
         type: String,
-        enum: ['draft', 'published', 'archived'],
-        default: 'published'
-    },
-    publishedAt: {
-        type: Date
+        unique: true
     }
 }, {
     timestamps: true,
@@ -86,19 +137,37 @@ const articleSchema = new mongoose.Schema({
 });
 
 // Add text index for search functionality
-articleSchema.index({ title: 'text', content: 'text', excerpt: 'text' });
-
-// Virtual for comments
-articleSchema.virtual('comments', {
-    ref: 'Comment',
-    localField: '_id',
-    foreignField: 'article'
+articleSchema.index({ 
+    'translations.en.title': 'text',
+    'translations.ar.title': 'text',
+    'translations.en.excerpt': 'text',
+    'translations.ar.excerpt': 'text',
+    'translations.en.content': 'text',
+    'translations.ar.content': 'text'
 });
 
-// Generate slug before saving
-articleSchema.pre('save', function(next) {
-    if (this.isModified('title')) {
-        this.slug = slugify(this.title, {
+// Virtual for comments
+articleSchema.virtual('commentCount', {
+    ref: 'Comment',
+    localField: '_id',
+    foreignField: 'article',
+    count: true
+});
+
+// Check for duplicate title before saving
+articleSchema.pre('save', async function(next) {
+    if (this.isModified('translations.en.title')) {
+        const existingArticle = await this.constructor.findOne({
+            'translations.en.title': this.translations.en.title,
+            _id: { $ne: this._id } // Exclude current article when updating
+        });
+
+        if (existingArticle) {
+            next(new Error('An article with this title already exists. Please choose a different title.'));
+            return;
+        }
+
+        this.slug = slugify(this.translations.en.title, {
             lower: true,
             strict: true
         });
@@ -141,7 +210,5 @@ articleSchema.methods.incrementShare = async function(platform) {
     }
 };
 
-const Article = mongoose.model('Article', articleSchema);
-
-module.exports = Article; 
+module.exports = mongoose.model('Article', articleSchema); 
  

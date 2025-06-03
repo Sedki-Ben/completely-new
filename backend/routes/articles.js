@@ -66,15 +66,23 @@ router.get('/slug/:slug', articlesController.getArticleBySlug);
 router.post('/',
     auth,
     isWriter,
-    upload.array('images', 10), // Allow up to 10 images
+    upload.single('image'), // Changed to single image upload for main image
     [
-        check('title', 'Title is required').not().isEmpty(),
-        check('content', 'Content is required').not().isEmpty(),
-        check('type').isIn(['etoile-du-sahel', 'the-beautiful-game', 'all-sports-hub']),
-        check('tags.*').optional().isString(),
-        check('status').optional().isIn(['draft', 'published', 'archived']),
-        check('imagePositions.*').optional().isNumeric(),
-        check('imageCaptions.*').optional().isString()
+        check('translations')
+            .custom((value, { req }) => {
+                try {
+                    const translations = JSON.parse(value);
+                    if (!translations.en || !translations.en.title || !translations.en.content) {
+                        throw new Error('English title and content are required');
+                    }
+                    return true;
+                } catch (error) {
+                    throw new Error('Invalid translations format');
+                }
+            }),
+        check('category').isIn(['etoile-du-sahel', 'the-beautiful-game', 'all-sports-hub']),
+        check('tags').optional().isString(),
+        check('status').optional().isIn(['draft', 'published', 'archived'])
     ],
     articlesController.createArticle
 );

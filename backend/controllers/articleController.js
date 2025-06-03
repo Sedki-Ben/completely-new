@@ -15,48 +15,41 @@ exports.createArticle = async (req, res) => {
         console.log('Request body:', req.body);
         console.log('User:', req.user);
 
-        // Extract and clean up the data
-        const { title, content, type, status = 'draft' } = req.body;
-        
-        // Handle tags - they might come as individual fields in FormData
-        const tags = [];
-        Object.keys(req.body).forEach(key => {
-            if (key.startsWith('tags[')) {
-                tags.push(req.body[key]);
-            }
-        });
-
         if (!req.user || !req.user.id) {
             return res.status(401).json({ message: 'User ID not found in request' });
         }
 
-        // Handle multiple images and their positions
-        const images = [];
-        if (req.files && req.files.length > 0) {
-            req.files.forEach((file, index) => {
-                const position = req.body[`imagePositions[${index}]`] || 0;
-                images.push({
-                    url: `/uploads/${file.filename}`,
-                    position: parseInt(position, 10),
-                    caption: req.body[`imageCaptions[${index}]`] || ''
-                });
-            });
-        }
+        // Parse the JSON strings from form data
+        const translations = JSON.parse(req.body.translations);
+        const tags = req.body.tags ? JSON.parse(req.body.tags) : [];
 
+        // Create article data
         const articleData = {
-            title,
-            content,
-            type,
-            status,
+            translations,
+            category: req.body.category,
+            status: req.body.status || 'draft',
             tags,
             author: req.user.id,
-            images
+            authorImage: req.body.authorImage || '/images/default-author.jpg', // Use provided authorImage or default
+            image: req.file ? `/uploads/${req.file.filename}` : null
         };
 
         console.log('Article data before save:', articleData);
 
         const article = new Article(articleData);
-        await article.save();
+        
+        try {
+            await article.save();
+        } catch (saveError) {
+            // Check if it's a duplicate title error
+            if (saveError.message.includes('title already exists')) {
+                return res.status(400).json({ 
+                    message: saveError.message,
+                    field: 'title'
+                });
+            }
+            throw saveError; // Re-throw other errors
+        }
 
         // Notify newsletter subscribers if article is published
         if (article.status === 'published') {
@@ -64,8 +57,8 @@ exports.createArticle = async (req, res) => {
                 const subscribers = await Subscription.find({ isVerified: true });
                 if (subscribers.length > 0) {
                     await EmailService.sendArticleNotification(subscribers, {
-                        title: article.title,
-                        summary: article.excerpt || '',
+                        title: article.translations.en.title,
+                        summary: article.translations.en.excerpt || '',
                         _id: article._id
                     });
                 }

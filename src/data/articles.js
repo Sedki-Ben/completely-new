@@ -1,6 +1,14 @@
 import article1Image from '../assets/images/articles/champions-league.jpg';
 import article2Image from '../assets/images/articles/world-cup.jpg';
 import article3Image from '../assets/images/articles/premier-league.png';
+import article4Image from '../assets/images/ess1.jpg';
+import article5Image from '../assets/images/ess2.jpg';
+import article6Image from '../assets/images/ess3.jpg';
+import article7Image from '../assets/images/ess4.jpg';
+import article8Image from '../assets/images/ess5.jpg';
+import article9Image from '../assets/images/ess6.jpg';
+
+
 import sedkiImage from '../assets/images/bild3.jpg';
 
 export const categoryTranslations = {
@@ -107,7 +115,7 @@ export const articles = [
       author: "Sedki B.Haouala",
     authorImage: sedkiImage,
     date: "January 15, 2024",
-    image: article1Image,
+    image: article5Image,
     category: "etoile-du-sahel",
     likes: 0,
     comments: 0
@@ -269,7 +277,7 @@ export const articles = [
     author: "Sedki B.Haouala",
     date: "January 5, 2024",
     authorImage: sedkiImage,
-    image: article3Image,
+    image: article4Image,
     category: "etoile-du-sahel",
     excerpt: "Why this might be the closest title race in recent memory",
     likes: 0,
@@ -487,7 +495,7 @@ export const articles = [
     authorImage: sedkiImage,
     date: "January 20, 2024",
     image: article2Image,
-    category: "the-beautiful-game",
+    category: "all-sports-hub",
     likes: 0,
     comments: 0
   },
@@ -672,7 +680,7 @@ export const articles = [
     author: "Sedki B.Haouala",
     authorImage: sedkiImage,
     date: "January 16, 2024",
-    image: article3Image,
+    image: article5Image,
     category: "etoile-du-sahel",
     likes: 0,
     comments: 0
@@ -714,7 +722,7 @@ export const articles = [
     author: "Sedki B.Haouala",
     authorImage: sedkiImage,
     date: "January 22, 2024",
-    image: article1Image,
+    image: article6Image,
     category: "etoile-du-sahel",
     likes: 0,
     comments: 0
@@ -756,7 +764,7 @@ export const articles = [
     author: "Sedki B.Haouala",
     authorImage: sedkiImage,
     date: "January 21, 2024",
-    image: article2Image,
+    image: article7Image,
     category: "etoile-du-sahel",
     likes: 0,
     comments: 0
@@ -840,7 +848,7 @@ export const articles = [
     author: "Sedki B.Haouala",
     authorImage: sedkiImage,
     date: "January 17, 2024",
-    image: article1Image,
+    image: article8Image,
     category: "etoile-du-sahel",
     likes: 0,
     comments: 0
@@ -882,7 +890,7 @@ export const articles = [
     author: "Sedki B.Haouala",
     authorImage: sedkiImage,
       date: "January 15, 2024",
-    image: article2Image,
+    image: article9Image,
     category: "etoile-du-sahel",
     likes: 0,
     comments: 0
@@ -1008,8 +1016,8 @@ export const articles = [
     author: "Sedki B.Haouala",
     authorImage: sedkiImage,
     date: "January 19, 2024",
-    image: article2Image,
-    category: "the-beautiful-game",
+    image: article9Image,
+    category: "etoile-du-sahel",
     likes: 0,
     comments: 0
   },
