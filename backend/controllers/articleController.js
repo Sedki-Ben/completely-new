@@ -30,9 +30,17 @@ exports.createArticle = async (req, res) => {
             status: req.body.status || 'draft',
             tags,
             author: req.user.id,
-            authorImage: req.body.authorImage || '/images/default-author.jpg', // Use provided authorImage or default
+            authorImage: req.body.authorImage || '/images/default-author.jpg',
             image: req.file ? `/uploads/${req.file.filename}` : null
         };
+
+        // Validate required fields
+        if (!articleData.image) {
+            return res.status(400).json({ 
+                message: 'Main article image is required',
+                field: 'image'
+            });
+        }
 
         console.log('Article data before save:', articleData);
 
@@ -50,6 +58,9 @@ exports.createArticle = async (req, res) => {
             }
             throw saveError; // Re-throw other errors
         }
+
+        // Populate author info before sending response
+        await article.populate('author', 'name email');
 
         // Notify newsletter subscribers if article is published
         if (article.status === 'published') {
@@ -81,12 +92,17 @@ exports.getArticles = async (req, res) => {
         const query = {};
 
         if (category) query.category = category;
-        if (language) query.language = language;
         if (status) query.status = status;
 
+        // Only show published articles to non-authenticated users
+        if (!req.user || !['admin', 'writer'].includes(req.user.role)) {
+            query.status = 'published';
+        }
+
         const articles = await Article.find(query)
-            .populate('author', 'name')
-            .sort({ createdAt: -1 })
+            .populate('author', 'name email')
+            .populate('commentCount')
+            .sort({ publishedAt: -1, createdAt: -1 })
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .exec();
@@ -96,7 +112,8 @@ exports.getArticles = async (req, res) => {
         res.json({
             articles,
             totalPages: Math.ceil(count / limit),
-            currentPage: page
+            currentPage: parseInt(page),
+            total: count
         });
     } catch (error) {
         console.error('Get articles error:', error);
@@ -108,18 +125,21 @@ exports.getArticles = async (req, res) => {
 exports.getArticle = async (req, res) => {
     try {
         const article = await Article.findById(req.params.id)
-            .populate('author', 'name')
-            .populate({
-                path: 'commentCount'
-            });
+            .populate('author', 'name email')
+            .populate('commentCount');
 
         if (!article) {
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        // Increment views
-        article.views += 1;
-        await article.save();
+        // Check if user can view unpublished articles
+        if (article.status !== 'published' && 
+            (!req.user || (req.user.id !== article.author._id.toString() && !['admin'].includes(req.user.role)))) {
+            return res.status(403).json({ message: 'Not authorized to view this article' });
+        }
+
+        // Increment views (async, don't wait for completion)
+        article.incrementViews().catch(err => console.error('Error incrementing views:', err));
 
         res.json(article);
     } catch (error) {
@@ -137,26 +157,44 @@ exports.updateArticle = async (req, res) => {
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        // Check ownership
-        if (article.author.toString() !== req.user.id) {
+        // Check ownership or admin role
+        if (article.author.toString() !== req.user.id && !['admin'].includes(req.user.role)) {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
         const updateData = { ...req.body };
+        
+        // Handle translations if provided as JSON string
+        if (typeof updateData.translations === 'string') {
+            updateData.translations = JSON.parse(updateData.translations);
+        }
+
+        // Handle tags if provided as JSON string
+        if (typeof updateData.tags === 'string') {
+            updateData.tags = JSON.parse(updateData.tags);
+        }
+
+        // Handle image upload
         if (req.file) {
-            updateData.coverImage = `/uploads/${req.file.filename}`;
+            updateData.image = `/uploads/${req.file.filename}`;
         }
 
         const updatedArticle = await Article.findByIdAndUpdate(
             req.params.id,
             updateData,
-            { new: true }
-        );
+            { new: true, runValidators: true }
+        ).populate('author', 'name email');
 
         res.json(updatedArticle);
     } catch (error) {
         console.error('Update article error:', error);
-        res.status(500).json({ message: 'Server error' });
+        if (error.message.includes('title already exists')) {
+            return res.status(400).json({ 
+                message: error.message,
+                field: 'title'
+            });
+        }
+        res.status(500).json({ message: 'Server error', details: error.message });
     }
 };
 
@@ -169,12 +207,12 @@ exports.deleteArticle = async (req, res) => {
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        // Check ownership
-        if (article.author.toString() !== req.user.id) {
+        // Check ownership or admin role
+        if (article.author.toString() !== req.user.id && !['admin'].includes(req.user.role)) {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        await article.remove();
+        await Article.findByIdAndDelete(req.params.id);
         res.json({ message: 'Article removed' });
     } catch (error) {
         console.error('Delete article error:', error);
@@ -191,18 +229,12 @@ exports.toggleLike = async (req, res) => {
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        const likeIndex = article.likes.indexOf(req.user.id);
-
-        if (likeIndex > -1) {
-            // Unlike
-            article.likes.splice(likeIndex, 1);
-        } else {
-            // Like
-            article.likes.push(req.user.id);
-        }
-
-        await article.save();
-        res.json({ likes: article.likes.length });
+        await article.toggleLike(req.user.id);
+        
+        res.json({ 
+            likes: article.likes.count,
+            isLiked: article.likes.users.includes(req.user.id)
+        });
     } catch (error) {
         console.error('Toggle like error:', error);
         res.status(500).json({ message: 'Server error' });
@@ -212,24 +244,36 @@ exports.toggleLike = async (req, res) => {
 // Search articles
 exports.searchArticles = async (req, res) => {
     try {
-        const { q, page = 1, limit = 10 } = req.query;
+        const { q, page = 1, limit = 10, category } = req.query;
 
-        const articles = await Article.find(
-            { $text: { $search: q } },
-            { score: { $meta: 'textScore' } }
-        )
+        if (!q || q.trim().length === 0) {
+            return res.status(400).json({ message: 'Search query is required' });
+        }
+
+        const query = {
+            $text: { $search: q },
+            status: 'published' // Only search published articles
+        };
+
+        if (category) {
+            query.category = category;
+        }
+
+        const articles = await Article.find(query, { score: { $meta: 'textScore' } })
             .sort({ score: { $meta: 'textScore' } })
             .limit(limit * 1)
             .skip((page - 1) * limit)
-            .populate('author', 'name')
+            .populate('author', 'name email')
             .exec();
 
-        const count = await Article.countDocuments({ $text: { $search: q } });
+        const count = await Article.countDocuments(query);
 
         res.json({
             articles,
             totalPages: Math.ceil(count / limit),
-            currentPage: page
+            currentPage: parseInt(page),
+            total: count,
+            query: q
         });
     } catch (error) {
         console.error('Search articles error:', error);
@@ -237,43 +281,243 @@ exports.searchArticles = async (req, res) => {
     }
 };
 
-// Get articles by type (analysis, story, notable)
-exports.getArticlesByType = (req, res) => {
-    res.json({ articles: [] });
-};
-
 // Get article by slug
-exports.getArticleBySlug = (req, res) => {
-    res.json({ article: null });
+exports.getArticleBySlug = async (req, res) => {
+    try {
+        const article = await Article.findBySlug(req.params.slug)
+            .populate('commentCount');
+
+        if (!article) {
+            return res.status(404).json({ message: 'Article not found' });
+        }
+
+        // Check if user can view unpublished articles
+        if (article.status !== 'published' && 
+            (!req.user || (req.user.id !== article.author._id.toString() && !['admin'].includes(req.user.role)))) {
+            return res.status(403).json({ message: 'Not authorized to view this article' });
+        }
+
+        // Increment views (async, don't wait for completion)
+        article.incrementViews().catch(err => console.error('Error incrementing views:', err));
+
+        res.json(article);
+    } catch (error) {
+        console.error('Get article by slug error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 // Record article share
-exports.recordShare = (req, res) => {
-    res.json({ message: 'Share recorded (stub)' });
+exports.recordShare = async (req, res) => {
+    try {
+        const { platform } = req.body;
+        const article = await Article.findById(req.params.id);
+
+        if (!article) {
+            return res.status(404).json({ message: 'Article not found' });
+        }
+
+        await article.incrementShare(platform);
+        
+        res.json({ 
+            message: 'Share recorded',
+            shares: article.shares
+        });
+    } catch (error) {
+        console.error('Record share error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 // Get users who liked the article
-exports.getArticleLikes = (req, res) => {
-    res.json({ likes: [] });
+exports.getArticleLikes = async (req, res) => {
+    try {
+        const article = await Article.findById(req.params.id)
+            .populate('likes.users', 'name email');
+
+        if (!article) {
+            return res.status(404).json({ message: 'Article not found' });
+        }
+
+        res.json({ 
+            likes: article.likes.users,
+            count: article.likes.count
+        });
+    } catch (error) {
+        console.error('Get article likes error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 // Get stats for writer's articles
-exports.getWriterStats = (req, res) => {
-    res.json({ stats: {} });
+exports.getWriterStats = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const stats = await Article.aggregate([
+            { $match: { author: mongoose.Types.ObjectId(userId) } },
+            {
+                $group: {
+                    _id: null,
+                    totalArticles: { $sum: 1 },
+                    publishedArticles: {
+                        $sum: { $cond: [{ $eq: ['$status', 'published'] }, 1, 0] }
+                    },
+                    draftArticles: {
+                        $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] }
+                    },
+                    totalViews: { $sum: '$views' },
+                    totalLikes: { $sum: '$likes.count' },
+                    totalShares: { $sum: '$shares.count' }
+                }
+            }
+        ]);
+
+        res.json({ stats: stats[0] || {} });
+    } catch (error) {
+        console.error('Get writer stats error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 // Get writer's draft articles
-exports.getWriterDrafts = (req, res) => {
-    res.json({ drafts: [] });
+exports.getWriterDrafts = async (req, res) => {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+        const userId = req.user.id;
+
+        const drafts = await Article.find({ 
+            author: userId, 
+            status: 'draft' 
+        })
+            .sort({ updatedAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .populate('author', 'name email');
+
+        const count = await Article.countDocuments({ 
+            author: userId, 
+            status: 'draft' 
+        });
+
+        res.json({
+            drafts,
+            totalPages: Math.ceil(count / limit),
+            currentPage: parseInt(page),
+            total: count
+        });
+    } catch (error) {
+        console.error('Get writer drafts error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 // Publish a draft article
-exports.publishArticle = (req, res) => {
-    res.json({ message: 'Article published (stub)' });
+exports.publishArticle = async (req, res) => {
+    try {
+        const article = await Article.findById(req.params.id);
+
+        if (!article) {
+            return res.status(404).json({ message: 'Article not found' });
+        }
+
+        // Check ownership or admin role
+        if (article.author.toString() !== req.user.id && !['admin'].includes(req.user.role)) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        article.status = 'published';
+        article.publishedAt = new Date();
+        await article.save();
+
+        // Notify newsletter subscribers
+        try {
+            const subscribers = await Subscription.find({ isVerified: true });
+            if (subscribers.length > 0) {
+                await EmailService.sendArticleNotification(subscribers, {
+                    title: article.translations.en.title,
+                    summary: article.translations.en.excerpt || '',
+                    _id: article._id
+                });
+            }
+        } catch (notifyErr) {
+            console.error('Error sending article notification:', notifyErr);
+        }
+
+        res.json({ 
+            message: 'Article published',
+            article: await article.populate('author', 'name email')
+        });
+    } catch (error) {
+        console.error('Publish article error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 // Archive an article
-exports.archiveArticle = (req, res) => {
-    res.json({ message: 'Article archived (stub)' });
-}; 
- 
+exports.archiveArticle = async (req, res) => {
+    try {
+        const article = await Article.findById(req.params.id);
+
+        if (!article) {
+            return res.status(404).json({ message: 'Article not found' });
+        }
+
+        // Check ownership or admin role
+        if (article.author.toString() !== req.user.id && !['admin'].includes(req.user.role)) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        article.status = 'archived';
+        await article.save();
+
+        res.json({ 
+            message: 'Article archived',
+            article: await article.populate('author', 'name email')
+        });
+    } catch (error) {
+        console.error('Archive article error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Get articles by type (analysis, story, notable)
+exports.getArticlesByType = async (req, res) => {
+    try {
+        const { type, page = 1, limit = 10 } = req.query;
+        
+        // Map type to category if needed
+        const categoryMap = {
+            'analysis': 'etoile-du-sahel',
+            'story': 'the-beautiful-game',
+            'notable': 'all-sports-hub'
+        };
+        
+        const category = categoryMap[type] || type;
+        
+        const articles = await Article.find({ 
+            category,
+            status: 'published'
+        })
+            .populate('author', 'name email')
+            .populate('commentCount')
+            .sort({ publishedAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const count = await Article.countDocuments({ 
+            category,
+            status: 'published'
+        });
+
+        res.json({
+            articles,
+            totalPages: Math.ceil(count / limit),
+            currentPage: parseInt(page),
+            total: count
+        });
+    } catch (error) {
+        console.error('Get articles by type error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};

@@ -72,8 +72,10 @@ const articleSchema = new mongoose.Schema({
             required: true
         }
     },
+    // Fixed: Make author reference User model
     author: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
         required: true
     },
     authorImage: {
@@ -105,6 +107,7 @@ const articleSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    // Fixed: Consistent like structure
     likes: {
         count: {
             type: Number,
@@ -126,6 +129,11 @@ const articleSchema = new mongoose.Schema({
             linkedin: { type: Number, default: 0 }
         }
     },
+    // Added: Tags field that frontend expects
+    tags: [{
+        type: String,
+        trim: true
+    }],
     slug: {
         type: String,
         unique: true
@@ -142,9 +150,15 @@ articleSchema.index({
     'translations.ar.title': 'text',
     'translations.en.excerpt': 'text',
     'translations.ar.excerpt': 'text',
-    'translations.en.content': 'text',
-    'translations.ar.content': 'text'
+    'translations.en.content.content': 'text',
+    'translations.ar.content.content': 'text',
+    'tags': 'text'
 });
+
+// Additional indexes for performance
+articleSchema.index({ category: 1, status: 1, publishedAt: -1 });
+articleSchema.index({ author: 1, status: 1 });
+articleSchema.index({ slug: 1 });
 
 // Virtual for comments
 articleSchema.virtual('commentCount', {
@@ -163,8 +177,9 @@ articleSchema.pre('save', async function(next) {
         });
 
         if (existingArticle) {
-            next(new Error('An article with this title already exists. Please choose a different title.'));
-            return;
+            const error = new Error('An article with this title already exists. Please choose a different title.');
+            error.name = 'ValidationError';
+            return next(error);
         }
 
         this.slug = slugify(this.translations.en.title, {
@@ -183,22 +198,23 @@ articleSchema.pre('save', async function(next) {
 // Method to increment view count
 articleSchema.methods.incrementViews = async function() {
     this.views += 1;
-    return this.save();
+    return this.save({ validateBeforeSave: false });
 };
 
-// Method to handle likes
+// Fixed: Method to handle likes consistently
 articleSchema.methods.toggleLike = async function(userId) {
-    const userIndex = this.likes.users.indexOf(userId);
+    const userObjectId = mongoose.Types.ObjectId(userId);
+    const userIndex = this.likes.users.findIndex(id => id.equals(userObjectId));
     
     if (userIndex === -1) {
-        this.likes.users.push(userId);
+        this.likes.users.push(userObjectId);
         this.likes.count += 1;
     } else {
         this.likes.users.splice(userIndex, 1);
         this.likes.count -= 1;
     }
     
-    return this.save();
+    return this.save({ validateBeforeSave: false });
 };
 
 // Method to increment share count
@@ -206,9 +222,14 @@ articleSchema.methods.incrementShare = async function(platform) {
     if (this.shares.platforms[platform] !== undefined) {
         this.shares.platforms[platform] += 1;
         this.shares.count += 1;
-        return this.save();
+        return this.save({ validateBeforeSave: false });
     }
+    throw new Error('Invalid platform');
 };
 
-module.exports = mongoose.model('Article', articleSchema); 
- 
+// Method to get article by slug
+articleSchema.statics.findBySlug = function(slug) {
+    return this.findOne({ slug }).populate('author', 'name email');
+};
+
+module.exports = mongoose.model('Article', articleSchema);
