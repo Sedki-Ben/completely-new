@@ -13,4 +13,13 @@
   .ptc-newsletter {
     @apply relative z-10;
   }
+  
+  /* RTL prose styles to fix image display in Arabic */
+  .prose-rtl img {
+    @apply !mx-auto !ml-0 !mr-0;
+  }
+  
+  .prose-rtl figure {
+    @apply !mx-auto !ml-0 !mr-0;
+  }
 }

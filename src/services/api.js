@@ -83,13 +83,14 @@ export const articles = {
 
 // Comment endpoints
 export const comments = {
-    getArticleComments: (articleId) => api.get(`/comments/article/${articleId}`),
+    getByArticle: (articleId, params) => api.get(`/comments/article/${articleId}`, { params }),
     getReplies: (commentId) => api.get(`/comments/${commentId}/replies`),
-    create: (data) => api.post('/comments', data),
-    update: (id, content) => api.put(`/comments/${id}`, { content }),
-    delete: (id) => api.delete(`/comments/${id}`),
-    toggleLike: (id) => api.post(`/comments/${id}/like`),
-    report: (id, reason) => api.post(`/comments/${id}/report`, { reason })
+    create: (articleId, data) => api.post(`/comments/article/${articleId}`, data),
+    update: (commentId, data) => api.put(`/comments/${commentId}`, data),
+    delete: (commentId) => api.delete(`/comments/${commentId}`),
+    toggleLike: (commentId) => api.post(`/comments/${commentId}/like`),
+    getLikes: (commentId) => api.get(`/comments/${commentId}/likes`),
+    report: (commentId, data) => api.post(`/comments/${commentId}/report`, data)
 };
 
 // Newsletter endpoints

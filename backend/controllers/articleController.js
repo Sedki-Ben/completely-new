@@ -3,6 +3,7 @@ const { validationResult } = require('express-validator');
 const { Subscription } = require('../models/Newsletter');
 const EmailService = require('../utils/emailService');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 // Create article
 exports.createArticle = async (req, res) => {
@@ -15,13 +16,14 @@ exports.createArticle = async (req, res) => {
 
         console.log('Request body:', req.body);
         console.log('User:', req.user);
+        console.log('Files:', req.files);
 
         if (!req.user || !req.user.id) {
             return res.status(401).json({ message: 'User ID not found in request' });
         }
 
         // Parse the JSON strings from form data
-        const translations = JSON.parse(req.body.translations);
+        let translations = JSON.parse(req.body.translations);
         const tags = req.body.tags ? JSON.parse(req.body.tags) : [];
 
         // Get user information for author fields
@@ -33,6 +35,49 @@ exports.createArticle = async (req, res) => {
         // Default status to published instead of draft
         const status = req.body.status || 'published';
 
+        // Process uploaded images
+        const mainImage = req.files?.image?.[0];
+        const contentImages = req.files?.contentImages || [];
+
+        // Validate required fields
+        if (!mainImage) {
+            return res.status(400).json({ 
+                message: 'Main article image is required',
+                field: 'image'
+            });
+        }
+
+        // Create a mapping of temporary blob URLs to actual uploaded files
+        const imageMapping = {};
+        contentImages.forEach((file, index) => {
+            // We'll map based on the order they were uploaded
+            imageMapping[`contentImage_${index}`] = `/uploads/${file.filename}`;
+        });
+
+        // Process content blocks to replace blob URLs with server URLs for ALL languages
+        let globalImageIndex = 0;
+        const languages = ['en', 'fr', 'ar'];
+        
+        languages.forEach(lang => {
+            if (translations[lang] && translations[lang].content) {
+                translations[lang].content = translations[lang].content.map(block => {
+                    if (block.type === 'image-group' && block.metadata?.images) {
+                        block.metadata.images = block.metadata.images.map(img => {
+                            // Replace blob URL with server URL
+                            if (img.url && img.url.startsWith('blob:') && globalImageIndex < contentImages.length) {
+                                return {
+                                    ...img,
+                                    url: `/uploads/${contentImages[globalImageIndex++].filename}`
+                                };
+                            }
+                            return img;
+                        });
+                    }
+                    return block;
+                });
+            }
+        });
+
         // Create article data
         const articleData = {
             translations,
@@ -42,7 +87,7 @@ exports.createArticle = async (req, res) => {
             author: req.user.id,
             // Use user's profile image if available, otherwise use default
             authorImage: user.profileImage || '/uploads/profile/bild3.jpg',
-            image: req.file ? `/uploads/${req.file.filename}` : null,
+            image: `/uploads/${mainImage.filename}`,
             // Initialize counters to 0 for dynamic functionality
             likes: { count: 0, users: [] },
             views: 0,
@@ -53,14 +98,6 @@ exports.createArticle = async (req, res) => {
         // Set publishedAt if status is published
         if (status === 'published') {
             articleData.publishedAt = new Date();
-        }
-
-        // Validate required fields
-        if (!articleData.image) {
-            return res.status(400).json({ 
-                message: 'Main article image is required',
-                field: 'image'
-            });
         }
 
         console.log('Article data before save:', articleData);
@@ -376,7 +413,7 @@ exports.getWriterStats = async (req, res) => {
         const userId = req.user.id;
 
         const stats = await Article.aggregate([
-            { $match: { author: mongoose.Types.ObjectId(userId) } },
+            { $match: { author: new mongoose.Types.ObjectId(userId) } },
             {
                 $group: {
                     _id: null,

@@ -64,8 +64,8 @@ function Analysis() {
     if (activeTab === 'top') {
       return b.likes - a.likes;
     } else {
-      // latest - sort by date
-      return new Date(b.date) - new Date(a.date);
+      // latest - sort by raw date for proper chronological order
+      return new Date(b.rawDate || b.date) - new Date(a.rawDate || a.date);
     }
   });
 

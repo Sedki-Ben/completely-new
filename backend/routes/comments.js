@@ -8,40 +8,49 @@ const router = express.Router();
 // @route   GET /api/comments/article/:articleId
 // @desc    Get all comments for an article
 // @access  Public
-router.get('/article/:articleId', commentsController.getArticleComments);
+router.get('/article/:articleId', commentsController.getComments);
 
 // @route   GET /api/comments/:id/replies
 // @desc    Get replies to a comment
 // @access  Public
 router.get('/:id/replies', commentsController.getCommentReplies);
 
+// @route   POST /api/comments/article/:articleId
+// @desc    Create a comment for an article
+// @access  Private
+router.post('/article/:articleId', [
+    auth,
+    check('content', 'Content is required').not().isEmpty().trim(),
+    check('parentId').optional({ nullable: true, checkFalsy: true }).isMongoId()
+], commentsController.createComment);
+
 // @route   POST /api/comments
-// @desc    Create a comment
+// @desc    Create a comment (legacy route)
 // @access  Private
 router.post('/', [
     auth,
     check('content', 'Content is required').not().isEmpty().trim(),
     check('articleId', 'Article ID is required').not().isEmpty(),
-    check('parentComment').optional().isMongoId()
+    check('parentComment').optional({ nullable: true, checkFalsy: true }).isMongoId()
 ], commentsController.createComment);
 
-// @route   PUT /api/comments/:id
+// @route   PUT /api/comments/:commentId
 // @desc    Update a comment
 // @access  Private
-router.put('/:id', [
+router.put('/:commentId', [
     auth,
     check('content', 'Content is required').not().isEmpty().trim()
 ], commentsController.updateComment);
 
-// @route   DELETE /api/comments/:id
+// @route   DELETE /api/comments/:commentId
 // @desc    Delete a comment
 // @access  Private
-router.delete('/:id', auth, commentsController.deleteComment);
+router.delete('/:commentId', auth, commentsController.deleteComment);
 
-// @route   POST /api/comments/:id/like
+// @route   POST /api/comments/:commentId/like
 // @desc    Toggle like on comment
 // @access  Private
-router.post('/:id/like', auth, commentsController.toggleLike);
+router.post('/:commentId/like', auth, commentsController.toggleLike);
 
 // @route   GET /api/comments/:id/likes
 // @desc    Get users who liked the comment

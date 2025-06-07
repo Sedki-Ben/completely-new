@@ -35,12 +35,14 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Import routes
 const authRoutes = require('./routes/auth');
 const articleRoutes = require('./routes/articles');
+const commentRoutes = require('./routes/comments');
 const newsletterRoutes = require('./routes/newsletter');
 const userRoutes = require('./routes/users');
 
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
+app.use('/api/comments', commentRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/users', userRoutes);
 

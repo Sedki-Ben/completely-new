@@ -25,7 +25,8 @@ import './App.css';
 
 function AppContent() {
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   
   const isActiveRoute = (path) => {
     return location.pathname === path;
@@ -34,14 +35,14 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300">
       {/* Header - Reusable across all pages */}
-      <header className="px-4 sm:px-6 py-4 bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+      <header className="px-4 sm:px-6 py-4 bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300" dir="ltr">
         <div className="max-w-7xl mx-auto">
           {/* Top Bar with User Avatar and Controls */}
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4" dir="ltr">
               <UserAvatar />
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4" dir="ltr">
               <button className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300">
                 <FiSearch className="w-5 h-5" />
               </button>
@@ -61,8 +62,8 @@ function AppContent() {
           </div>
           
           {/* Navigation - Single line, centered */}
-          <nav className="flex justify-center items-center overflow-x-auto whitespace-nowrap pb-2 sm:pb-0">
-            <div className="inline-flex items-center space-x-2">
+          <nav className="flex justify-center items-center overflow-x-auto whitespace-nowrap pb-2 sm:pb-0" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className={`inline-flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
               <Link 
                 to="/" 
                 className={`px-3 py-2 rounded-lg font-medium text-sm transition-all duration-300 ${

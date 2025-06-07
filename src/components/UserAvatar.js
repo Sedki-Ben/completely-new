@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import defaultMaleAvatar from '../assets/images/mann.png';
 import defaultFemaleAvatar from '../assets/images/frau.png';
 import { FiUser, FiLogOut, FiSettings, FiChevronDown, FiLayout } from 'react-icons/fi';
@@ -8,6 +9,7 @@ import { getUserAvatarUrl } from '../utils/imageUtils';
 
 const UserAvatar = () => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { t } = useTranslation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState('');
   const dropdownRef = useRef(null);
@@ -52,13 +54,13 @@ const UserAvatar = () => {
         className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300"
       >
         <FiUser className="w-4 h-4 mr-2" />
-        Sign In
+        {t('Sign In')}
       </Link>
     );
   }
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative" ref={dropdownRef} dir="ltr">
       <button
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         className="flex items-center gap-2 group focus:outline-none"
@@ -89,7 +91,7 @@ const UserAvatar = () => {
             onClick={() => setIsDropdownOpen(false)}
           >
             <FiSettings className="w-4 h-4 mr-2" />
-            Profile Settings
+            {t('Profile Settings')}
           </Link>
           {user?.role === 'admin' && (
             <Link
@@ -98,7 +100,7 @@ const UserAvatar = () => {
               onClick={() => setIsDropdownOpen(false)}
             >
               <FiLayout className="w-4 h-4 mr-2" />
-              Dashboard
+              {t('Dashboard')}
             </Link>
           )}
           <button
@@ -106,7 +108,7 @@ const UserAvatar = () => {
             className="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300"
           >
             <FiLogOut className="w-4 h-4 mr-2" />
-            Sign Out
+            {t('Sign Out')}
           </button>
         </div>
       )}

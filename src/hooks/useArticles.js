@@ -9,7 +9,7 @@ const DEFAULT_AUTHOR_IMAGE = "/uploads/profile/bild3.jpg"; // Backend path
 export const categoryTranslations = {
   'etoile-du-sahel': { 
     en: 'Etoile Du Sahel', 
-    fr: 'Étoile du Sahel', 
+    fr: 'Étoile Du Sahel', 
     ar: 'النجم الساحلي' 
   },
   'the-beautiful-game': { 
@@ -19,7 +19,7 @@ export const categoryTranslations = {
   },
   'all-sports-hub': { 
     en: 'All-Sports Hub', 
-    fr: 'Hub Tous Sports', 
+    fr: 'Centre Omnisports', 
     ar: 'مركز كل الرياضات' 
   },
   archive: { 
@@ -36,16 +36,19 @@ const transformArticle = (article) => {
   // Get backend URL for constructing full image URLs
   const backendUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000';
   
+  const publishedDate = article.publishedAt || article.createdAt;
+  
   return {
     id: article._id,
     translations: article.translations,
     author: article.author?.name || DEFAULT_AUTHOR,
     authorImage: article.authorImage ? `${backendUrl}${article.authorImage}` : `${backendUrl}${DEFAULT_AUTHOR_IMAGE}`,
-    date: new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', {
+    date: new Date(publishedDate).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     }),
+    rawDate: publishedDate, // Keep raw date for sorting
     image: article.image ? `${backendUrl}${article.image}` : null,
     category: article.category,
     likes: article.likes?.count || 0,
@@ -60,8 +63,10 @@ const transformArticle = (article) => {
 export const getLocalizedArticleContent = (article, language = 'en') => {
   if (!article?.translations?.[language]) {
     // Fallback to English if translation not available
+    console.log(`No ${language} translation found for article ${article?.id}, falling back to English`);
     return article?.translations?.['en'] || null;
   }
+  console.log(`Using ${language} translation for article ${article?.id}`);
   return article.translations[language];
 };
 

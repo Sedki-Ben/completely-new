@@ -56,9 +56,9 @@ function ArticlePage() {
 
   // Show article if we have it
   if (article) {
-    return (
-      <div className="py-8">
-        <Article article={article} />
+  return (
+    <div className="py-8">
+      <Article article={article} />
       </div>
     );
   }

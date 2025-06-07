@@ -71,7 +71,10 @@ router.get('/:id', articlesController.getArticle);
 router.post('/',
     auth,
     isWriter,
-    upload.single('image'), // Changed to single image upload for main image
+    upload.fields([
+        { name: 'image', maxCount: 1 }, // Main article image
+        { name: 'contentImages', maxCount: 10 } // Images for content blocks
+    ]),
     [
         check('translations')
             .custom((value, { req }) => {

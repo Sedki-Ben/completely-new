@@ -203,7 +203,7 @@ articleSchema.methods.incrementViews = async function() {
 
 // Fixed: Method to handle likes consistently
 articleSchema.methods.toggleLike = async function(userId) {
-    const userObjectId = mongoose.Types.ObjectId(userId);
+    const userObjectId = new mongoose.Types.ObjectId(userId);
     const userIndex = this.likes.users.findIndex(id => id.equals(userObjectId));
     
     if (userIndex === -1) {

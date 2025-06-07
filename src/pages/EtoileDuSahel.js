@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FiHeart, FiMessageCircle, FiShare2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
-import { useArticles, getLocalizedArticleContent, categoryTranslations } from '../hooks/useArticles';
+import { useArticles } from '../hooks/useArticles';
 import Newsletter from '../components/Newsletter';
 import ArticleCard from '../components/ArticleCard';
 import Pagination from '../components/Pagination';
 
 function EtoileDuSahel() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { fetchArticlesByCategory, loading, error } = useArticles();
   const [articles, setArticles] = useState([]);
   const [activeTab, setActiveTab] = useState('latest');
@@ -66,8 +64,8 @@ function EtoileDuSahel() {
     if (activeTab === 'top') {
       return b.likes - a.likes;
     } else {
-      // latest - sort by date
-      return new Date(b.date) - new Date(a.date);
+      // latest - sort by raw date for proper chronological order
+      return new Date(b.rawDate || b.date) - new Date(a.rawDate || a.date);
     }
   });
 

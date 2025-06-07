@@ -1,11 +1,35 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getLocalizedArticleContent } from '../hooks/useArticles';
 
 const ArticleCard = ({ article, variant = 'default' }) => {
   const { i18n } = useTranslation();
-  const localizedContent = getLocalizedArticleContent(article, i18n.language);
+  
+  // Get current language content or fallback to English
+  const getCurrentLanguageContent = () => {
+    const currentLang = i18n.language;
+    if (article.translations && article.translations[currentLang]) {
+      return article.translations[currentLang];
+    }
+    // Fallback to English if current language not available
+    return article.translations?.en || {
+      title: 'Untitled',
+      excerpt: 'No excerpt available'
+    };
+  };
+
+  const localizedContent = getCurrentLanguageContent();
+
+  // Get author name based on language
+  const getAuthorName = () => {
+    if (i18n.language === 'ar') {
+      return 'صدقي بن حوالة';
+    }
+    return article.author?.name || article.author || 'Anonymous';
+  };
+
+  // Check if current language is RTL
+  const isRTL = i18n.language === 'ar';
 
   const themeClasses = {
     'etoile-du-sahel': {
@@ -51,6 +75,7 @@ const ArticleCard = ({ article, variant = 'default' }) => {
     <Link 
       to={`/article/${article.slug || article.id}`}
       className={`block bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl dark:shadow-none transition-all duration-300 overflow-hidden border ${theme.border} ${theme.hover}`}
+      dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* Image */}
       <div className="relative h-48 overflow-hidden">
@@ -72,27 +97,29 @@ const ArticleCard = ({ article, variant = 'default' }) => {
         </p>
 
         {/* Meta information */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+        <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
             <img
               src={article.authorImage}
-              alt={article.author}
+              alt={getAuthorName()}
               className="w-8 h-8 rounded-full object-cover"
               onError={(e) => {
                 e.target.src = '/src/assets/images/bild3.jpg'; // Fallback image
               }}
             />
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              {article.author}
+              {getAuthorName()}
             </span>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <span className={`text-sm ${theme.text}`}>
-              {article.likes || 0} ❤️
+          <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
+            <span className={`text-sm ${theme.text} flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
+              <span>{article.likes || 0}</span>
+              <span>❤️</span>
             </span>
-            <span className={`text-sm ${theme.text}`}>
-              {article.comments || 0} 💬
+            <span className={`text-sm ${theme.text} flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
+              <span>{article.comments || 0}</span>
+              <span>💬</span>
             </span>
           </div>
         </div>

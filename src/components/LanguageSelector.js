@@ -18,7 +18,7 @@ function LanguageSelector() {
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group" dir="ltr">
       <button
         className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700 transition-all duration-300"
         aria-label="Select language"

@@ -107,19 +107,19 @@ function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Featured Etoile Article */}
             {featuredEtoile && (
-              <div className="lg:col-span-7">
+            <div className="lg:col-span-7">
                 <Link to={`/article/${featuredEtoile.slug || featuredEtoile.id}`} className="group">
-                  <div className="aspect-w-16 aspect-h-9 mb-4">
-                    <img
+                <div className="aspect-w-16 aspect-h-9 mb-4">
+                  <img
                       src={featuredEtoile.image}
                       alt={getLocalizedArticleContent(featuredEtoile, i18n.language)?.title}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  </div>
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                </div>
                   <h3 className={`text-2xl font-serif font-bold text-gray-900 dark:text-white mb-2 ${themeColors['etoile-du-sahel'].groupHover} transition-colors`}>
                     {getLocalizedArticleContent(featuredEtoile, i18n.language)?.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
                     {getLocalizedArticleContent(featuredEtoile, i18n.language)?.excerpt}
                   </p>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -143,8 +143,8 @@ function Home() {
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
                       {getLocalizedArticleContent(article, i18n.language)?.excerpt}
-                    </p>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                </p>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                       {(i18n.language === 'ar' ? 'صدقي بن حوالة' : article.author)} • {article.date}
                     </div>
                   </div>
@@ -154,7 +154,7 @@ function Home() {
                       alt={getLocalizedArticleContent(article, i18n.language)?.title}
                       className="w-full h-full object-cover rounded-lg"
                     />
-                  </div>
+                </div>
                 </Link>
               ))}
             </div>
@@ -172,8 +172,8 @@ function Home() {
               className={`flex items-center ${themeColors['the-beautiful-game'].text} ${themeColors['the-beautiful-game'].hover} transition-colors`}
             >
               {t('View All')} <FiArrowRight className="ml-2" />
-            </Link>
-          </div>
+              </Link>
+            </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Featured Game Article */}

@@ -1,11 +1,17 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { FiImage, FiX, FiEye, FiPlus, FiAlignLeft, FiAlignCenter, FiAlignRight, FiBold, FiItalic, FiUnderline, FiList, FiType } from 'react-icons/fi';
-import { BsTypeH2, BsTypeH3, BsBlockquoteLeft, BsParagraph, BsListUl, BsListOl } from 'react-icons/bs';
+import React, { useState, useRef, useEffect } from 'react';
+import { FiImage, FiX, FiEye, FiBold, FiItalic, FiUnderline, FiGlobe } from 'react-icons/fi';
+import { BsTypeH2, BsBlockquoteLeft, BsParagraph, BsListUl, BsListOl } from 'react-icons/bs';
 
 const types = [
   'etoile-du-sahel',
   'the-beautiful-game',
   'all-sports-hub'
+];
+
+const languages = [
+  { code: 'en', name: 'English', dir: 'ltr' },
+  { code: 'fr', name: 'Français', dir: 'ltr' },
+  { code: 'ar', name: 'العربية', dir: 'rtl' }
 ];
 
 // Rich Text Toolbar Component
@@ -94,9 +100,6 @@ const RichTextToolbar = ({ onFormat, textRef }) => {
     // Ensure the editor is focused
     textRef.current.focus();
     
-    // Save current selection
-    const selection = window.getSelection();
-    
     try {
       // Execute the command
       const success = document.execCommand(command, false, value);
@@ -183,7 +186,7 @@ const RichTextToolbar = ({ onFormat, textRef }) => {
 
 // Rich Text Editor Component
 // Replace RichTextEditor component (lines 79-110)
-const RichTextEditor = ({ content, onChange, placeholder, className = "" }) => {
+const RichTextEditor = ({ content, onChange, placeholder, className = "", dir }) => {
   const editorRef = useRef(null);
 
   const handleInput = () => {
@@ -201,16 +204,13 @@ const RichTextEditor = ({ content, onChange, placeholder, className = "" }) => {
     if (e.key === 'Enter') {
       e.stopPropagation(); // Stop the event from bubbling up to the form
   
-      const selection = window.getSelection();
-      if (selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const listItem = range.startContainer.parentElement?.closest('li');
-        if (listItem) {
+      // Check if we're in a list context to allow normal list behavior
+      const currentElement = e.target.closest('li');
+      if (currentElement) {
           // Let the browser handle list item creation
           return;
         }
         // For regular paragraphs, allow normal line break behavior
-      }
     }
   };
   
@@ -241,12 +241,13 @@ const RichTextEditor = ({ content, onChange, placeholder, className = "" }) => {
         style={{ minHeight: '100px' }}
         data-placeholder={placeholder}
         suppressContentEditableWarning={true}
+        dir={dir}
       />
     </div>
   );
 };
 
-const ContentBlock = ({ block, onUpdate, onDelete, index }) => {
+const ContentBlock = ({ block, onUpdate, onDelete, index, dir }) => {
   const [draggedImageIndex, setDraggedImageIndex] = useState(null);
 
   const handleContentChange = (content) => {
@@ -316,6 +317,7 @@ const ContentBlock = ({ block, onUpdate, onDelete, index }) => {
               onChange={handleTextContentChange}
               rows={1}
               style={{ resize: 'none' }}
+              dir={dir}
             />
             <select
               value={block.metadata.level || 2}
@@ -337,6 +339,7 @@ const ContentBlock = ({ block, onUpdate, onDelete, index }) => {
               value={block.content}
               onChange={handleTextContentChange}
               rows={3}
+              dir={dir}
             />
             <input
               type="text"
@@ -344,6 +347,7 @@ const ContentBlock = ({ block, onUpdate, onDelete, index }) => {
               value={block.metadata.source || ''}
               onChange={(e) => handleMetadataChange('source', e.target.value)}
               className="w-full px-4 py-2 rounded-lg border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              dir={dir}
             />
           </div>
         );
@@ -443,6 +447,7 @@ const ContentBlock = ({ block, onUpdate, onDelete, index }) => {
                       value={img.caption || ''}
                       onChange={(e) => updateImage(imgIndex, { caption: e.target.value })}
                       className="mt-2 w-full px-3 py-1 text-sm rounded border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                      dir={dir}
                     />
                   </div>
                 ))}
@@ -458,6 +463,7 @@ const ContentBlock = ({ block, onUpdate, onDelete, index }) => {
             onChange={handleContentChange}
             placeholder="Write your paragraph content here..."
             className="w-full"
+            dir={dir}
           />
         );
     }
@@ -478,7 +484,7 @@ const ContentBlock = ({ block, onUpdate, onDelete, index }) => {
 };
 
 // Preview Component
-const ArticlePreview = ({ title, mainImage, blocks, tags, type }) => {
+const ArticlePreview = ({ title, mainImage, blocks, tags, type, language }) => {
   const renderPreviewBlock = (block, index) => {
     switch (block.type) {
       case 'heading':
@@ -583,18 +589,30 @@ const ArticlePreview = ({ title, mainImage, blocks, tags, type }) => {
 };
 
 const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, error = '', userRole }) => {
-  const [title, setTitle] = useState(initialData.title || '');
+  // Multilingual content state
+  const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [titles, setTitles] = useState({
+    en: initialData.titles?.en || '',
+    fr: initialData.titles?.fr || '',
+    ar: initialData.titles?.ar || ''
+  });
+  const [contentBlocks, setContentBlocks] = useState({
+    en: initialData.content?.en || [],
+    fr: initialData.content?.fr || [],
+    ar: initialData.content?.ar || []
+  });
+  
   const [mainImage, setMainImage] = useState(initialData.image || null);
-  const [blocks, setBlocks] = useState(initialData.content || []);
   const [tags, setTags] = useState(initialData.tags ? initialData.tags.join(', ') : '');
   const [type, setType] = useState(initialData.type || types[0]);
   const [localError, setLocalError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [draggedBlockIndex, setDraggedBlockIndex] = useState(null);
 
-
   // Permission check
   const hasPermission = ['writer', 'admin'].includes(userRole);
+
+  const getCurrentLanguageInfo = () => languages.find(lang => lang.code === currentLanguage);
 
   const handleMainImageChange = (e) => {
     const file = e.target.files[0];
@@ -610,33 +628,54 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
     }
   };
 
+  const handleTitleChange = (value) => {
+    setTitles(prev => ({
+      ...prev,
+      [currentLanguage]: value
+    }));
+  };
+
   const handleBlockUpdate = (index, updatedBlock) => {
-    const newBlocks = [...blocks];
-    newBlocks[index] = updatedBlock;
-    setBlocks(newBlocks);
+    setContentBlocks(prev => ({
+      ...prev,
+      [currentLanguage]: prev[currentLanguage].map((block, i) => 
+        i === index ? updatedBlock : block
+      )
+    }));
   };
 
   const handleBlockDelete = (index) => {
-    setBlocks(blocks.filter((_, i) => i !== index));
+    setContentBlocks(prev => ({
+      ...prev,
+      [currentLanguage]: prev[currentLanguage].filter((_, i) => i !== index)
+    }));
   };
 
   const moveBlock = (fromIndex, toIndex) => {
-  const newBlocks = [...blocks];
+    setContentBlocks(prev => {
+      const newBlocks = [...prev[currentLanguage]];
   const [movedBlock] = newBlocks.splice(fromIndex, 1);
   newBlocks.splice(toIndex, 0, movedBlock);
-  setBlocks(newBlocks);
+      return {
+        ...prev,
+        [currentLanguage]: newBlocks
+      };
+    });
 };
 
-  const addBlock = (type) => {
+  const addBlock = (blockType) => {
     const newBlock = {
-      type,
+      type: blockType,
       content: '',
-      metadata: type === 'heading' ? { level: 2 } :
-                type === 'quote' ? { source: '' } :
-                type === 'image-group' ? { images: [] } :
+      metadata: blockType === 'heading' ? { level: 2 } :
+                blockType === 'quote' ? { source: '' } :
+                blockType === 'image-group' ? { images: [] } :
                 {}
     };
-    setBlocks([...blocks, newBlock]);
+    setContentBlocks(prev => ({
+      ...prev,
+      [currentLanguage]: [...prev[currentLanguage], newBlock]
+    }));
   };
 
   // Convert rich text content to plain text for excerpt
@@ -648,22 +687,28 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !mainImage) {
-      setLocalError('Title and main image are required.');
+    
+    // Validate that all languages have titles
+    const missingTitles = languages.filter(lang => !titles[lang.code]?.trim());
+    if (missingTitles.length > 0) {
+      setLocalError(`Title is required for all languages. Missing: ${missingTitles.map(l => l.name).join(', ')}`);
       return;
     }
 
-    // Find first paragraph for excerpt (strip HTML for plain text excerpt)
-    const firstParagraph = blocks.find(b => b.type === 'paragraph' && stripHtml(b.content).trim())?.content || '';
-    if (!firstParagraph) {
-      setLocalError('At least one paragraph is required for the article excerpt.');
+    if (!mainImage) {
+      setLocalError('Main image is required.');
       return;
     }
 
-    // Validate that all content blocks have content
-    const emptyBlock = blocks.find(b => !stripHtml(b.content).trim() && b.type !== 'image-group');
-    if (emptyBlock) {
-      setLocalError('All content blocks must have content.');
+    // Validate that each language has at least one paragraph
+    const missingContent = languages.filter(lang => {
+      const blocks = contentBlocks[lang.code] || [];
+      const firstParagraph = blocks.find(b => b.type === 'paragraph' && stripHtml(b.content).trim());
+      return !firstParagraph;
+    });
+
+    if (missingContent.length > 0) {
+      setLocalError(`At least one paragraph is required for all languages. Missing content: ${missingContent.map(l => l.name).join(', ')}`);
       return;
     }
     
@@ -671,45 +716,64 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
     
     const formData = new FormData();
     
-    // Add translations with required fields - keep content as HTML for rich text
-    const translations = {
-      en: {
-        title: title.trim(),
-        excerpt: stripHtml(firstParagraph).slice(0, 200), // Plain text excerpt
+    // Collect all image files from all languages
+    const contentImageFiles = [];
+    languages.forEach(lang => {
+      const blocks = contentBlocks[lang.code] || [];
+      blocks.forEach(block => {
+        if (block.type === 'image-group' && block.metadata?.images) {
+          block.metadata.images.forEach(img => {
+            if (img.file) {
+              contentImageFiles.push(img.file);
+            }
+          });
+        }
+      });
+    });
+
+    // Create translations object with all languages
+    const translations = {};
+    languages.forEach(lang => {
+      const blocks = contentBlocks[lang.code] || [];
+      const firstParagraph = blocks.find(b => b.type === 'paragraph' && stripHtml(b.content).trim())?.content || '';
+      
+      translations[lang.code] = {
+        title: titles[lang.code]?.trim() || '',
+        excerpt: stripHtml(firstParagraph).slice(0, 200),
         content: blocks.map(b => {
           if (b.type === 'image-group') {
             return {
               ...b,
-              content: b.content || 'Image Group' // Provide default content for image blocks
+              content: b.content || 'Image Group'
             };
           }
           return {
             ...b,
-            content: b.content || '' // Ensure content field exists
+            content: b.content || ''
           };
         }).filter(b => {
-          // Only include blocks that have actual content or are image groups with images
           if (b.type === 'image-group') {
             return b.metadata?.images?.length > 0;
           }
           return stripHtml(b.content).trim().length > 0;
         })
-      },
-      ar: {
-        title: 'قيد الترجمة',
-        excerpt: 'قيد الترجمة',
-        content: []
-      }
-    };
+      };
+    });
 
     formData.append('translations', JSON.stringify(translations));
     
+    // Add main image
     if (mainImage?.file) {
       formData.append('image', mainImage.file);
     }
     
+    // Add content images
+    contentImageFiles.forEach((file, index) => {
+      formData.append('contentImages', file);
+    });
+    
     formData.append('category', type);
-    formData.append('status', 'draft');
+    formData.append('status', 'published');
     formData.append('authorImage', '/images/default-author.jpg');
     
     const tagsArray = tags.split(',').map(t => t.trim()).filter(Boolean);
@@ -723,7 +787,7 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
       if (error.response?.data?.message) {
         setLocalError(error.response.data.message);
         if (error.response.data.field === 'title') {
-          const titleInput = document.querySelector('input[placeholder="Article Title"]');
+          const titleInput = document.querySelector('input[placeholder*="Title"]');
           if (titleInput) {
             titleInput.classList.add('border-red-500', 'focus:ring-red-500');
             titleInput.focus();
@@ -743,6 +807,9 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
     );
   }
 
+  const currentLangInfo = getCurrentLanguageInfo();
+  const currentBlocks = contentBlocks[currentLanguage] || [];
+
   return (
     <div className={`flex gap-6 ${showPreview ? 'max-w-7xl' : 'max-w-4xl'} mx-auto`}>
       {/* Editor Panel */}
@@ -752,14 +819,40 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
           e.preventDefault();
         }
       }} className="space-y-6">
+          
+          {/* Language Tabs */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <FiGlobe className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Language:</span>
+            </div>
+            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+              {languages.map(lang => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => setCurrentLanguage(lang.code)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    currentLanguage === lang.code
+                      ? 'bg-blue-500 text-white shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  }`}
+                >
+                  {lang.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Title Input */}
           <input
-            className="w-full px-4 py-3 rounded-lg border border-blue-300 dark:border-blue-700 bg-white/70 dark:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition placeholder-gray-400 dark:placeholder-gray-500 text-blue-900 dark:text-blue-100"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="Article Title"
+            className={`w-full px-4 py-3 rounded-lg border border-blue-300 dark:border-blue-700 bg-white/70 dark:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition placeholder-gray-400 dark:placeholder-gray-500 text-blue-900 dark:text-blue-100`}
+            value={titles[currentLanguage]}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            placeholder={`Article Title (${currentLangInfo.name})`}
             required
             disabled={loading}
+            dir={currentLangInfo.dir}
           />
 
           {/* Main Image Upload */}
@@ -808,8 +901,8 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
           </div>
 
           {/* Content Blocks */}
-          <div className="space-y-6">
-          {blocks.map((block, index) => (
+          <div className="space-y-6" dir={currentLangInfo.dir}>
+            {currentBlocks.map((block, index) => (
             <div
               key={index}
               className="relative group flex items-start gap-2"
@@ -824,7 +917,7 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
             >
               {/* Drag Handle */}
               <div
-                className="flex-shrink-0 mt-4 opacity-0 group-hover:opacity-100 transition-opacity cursor-move"
+                  className={`flex-shrink-0 mt-4 opacity-0 group-hover:opacity-100 transition-opacity cursor-move ${currentLangInfo.dir === 'rtl' ? 'order-2' : ''}`}
                 draggable
                 onDragStart={() => setDraggedBlockIndex(index)}
                 onDragEnd={() => setDraggedBlockIndex(null)}
@@ -843,11 +936,11 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
                   index={index}
                   onUpdate={handleBlockUpdate}
                   onDelete={handleBlockDelete}
+                    dir={currentLangInfo.dir}
                 />
               </div>
             </div>
           ))}
-
           </div>
 
           {/* Add Block Buttons */}
@@ -886,7 +979,7 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
           <input
             className="w-full px-4 py-3 rounded-lg border border-purple-300 dark:border-purple-700 bg-white/70 dark:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-600 transition placeholder-gray-400 dark:placeholder-gray-500 text-purple-900 dark:text-purple-100"
             value={tags}
-            onChange={e => setTags(e.target.value)}
+            onChange={(e) => setTags(e.target.value)}
             placeholder="Tags (comma separated)"
             disabled={loading}
           />
@@ -895,7 +988,7 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
           <select
             className="w-full px-4 py-3 rounded-lg border border-emerald-300 dark:border-emerald-700 bg-white/70 dark:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:focus:ring-emerald-600 transition text-emerald-900 dark:text-emerald-100"
             value={type}
-            onChange={e => setType(e.target.value)}
+            onChange={(e) => setType(e.target.value)}
             disabled={loading}
           >
             {types.map(t => (
@@ -957,15 +1050,16 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
         <div className="w-1/2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-blue-200 dark:border-blue-900">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
             <FiEye className="w-5 h-5" />
-            Live Preview
+            Live Preview ({currentLangInfo.name})
           </h2>
-          <div className="max-h-[80vh] overflow-y-auto">
+          <div className="max-h-[80vh] overflow-y-auto" dir={currentLangInfo.dir}>
             <ArticlePreview
-              title={title}
+              title={titles[currentLanguage]}
               mainImage={mainImage}
-              blocks={blocks}
+              blocks={currentBlocks}
               tags={tags}
               type={type}
+              language={currentLanguage}
             />
           </div>
         </div>
