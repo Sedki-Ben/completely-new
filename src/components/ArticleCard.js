@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getLocalizedArticleContent } from '../data/articles';
+import { getLocalizedArticleContent } from '../hooks/useArticles';
 
 const ArticleCard = ({ article, variant = 'default' }) => {
   const { i18n } = useTranslation();
@@ -49,7 +49,7 @@ const ArticleCard = ({ article, variant = 'default' }) => {
 
   return (
     <Link 
-      to={`/article/${article.id}`}
+      to={`/article/${article.slug || article.id}`}
       className={`block bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl dark:shadow-none transition-all duration-300 overflow-hidden border ${theme.border} ${theme.hover}`}
     >
       {/* Image */}
@@ -78,6 +78,9 @@ const ArticleCard = ({ article, variant = 'default' }) => {
               src={article.authorImage}
               alt={article.author}
               className="w-8 h-8 rounded-full object-cover"
+              onError={(e) => {
+                e.target.src = '/src/assets/images/bild3.jpg'; // Fallback image
+              }}
             />
             <span className="text-sm text-gray-600 dark:text-gray-400">
               {article.author}
@@ -86,10 +89,10 @@ const ArticleCard = ({ article, variant = 'default' }) => {
           
           <div className="flex items-center space-x-4">
             <span className={`text-sm ${theme.text}`}>
-              {article.likes} ❤️
+              {article.likes || 0} ❤️
             </span>
             <span className={`text-sm ${theme.text}`}>
-              {article.comments} 💬
+              {article.comments || 0} 💬
             </span>
           </div>
         </div>

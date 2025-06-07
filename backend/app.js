@@ -21,15 +21,16 @@ app.use(express.urlencoded({ extended: true }));
 // Apply i18n middleware before routes
 app.use(i18nextMiddleware);
 
-// Apply rate limiting to all routes
+// Apply global rate limiter
 app.use(limiter);
 
-// Apply specific rate limits to auth routes
+// Apply specific rate limits
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
-
-// Apply rate limit to newsletter subscription
 app.use('/api/newsletter/subscribe', newsletterLimiter);
+
+// Serve static files for uploaded images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -42,9 +43,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/users', userRoutes);
-
-// Serve uploads directory as static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -67,5 +65,4 @@ app.use((req, res) => {
   });
 });
 
-module.exports = app; 
- 
+module.exports = app;

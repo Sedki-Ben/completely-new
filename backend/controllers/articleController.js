@@ -2,6 +2,7 @@ const Article = require('../models/Article');
 const { validationResult } = require('express-validator');
 const { Subscription } = require('../models/Newsletter');
 const EmailService = require('../utils/emailService');
+const User = require('../models/User');
 
 // Create article
 exports.createArticle = async (req, res) => {
@@ -23,16 +24,36 @@ exports.createArticle = async (req, res) => {
         const translations = JSON.parse(req.body.translations);
         const tags = req.body.tags ? JSON.parse(req.body.tags) : [];
 
+        // Get user information for author fields
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Default status to published instead of draft
+        const status = req.body.status || 'published';
+
         // Create article data
         const articleData = {
             translations,
             category: req.body.category,
-            status: req.body.status || 'draft',
+            status,
             tags,
             author: req.user.id,
-            authorImage: req.body.authorImage || '/images/default-author.jpg',
-            image: req.file ? `/uploads/${req.file.filename}` : null
+            // Use user's profile image if available, otherwise use default
+            authorImage: user.profileImage || '/uploads/profile/bild3.jpg',
+            image: req.file ? `/uploads/${req.file.filename}` : null,
+            // Initialize counters to 0 for dynamic functionality
+            likes: { count: 0, users: [] },
+            views: 0,
+            commentCount: 0,
+            shares: { count: 0, platforms: { twitter: 0, facebook: 0, linkedin: 0 } }
         };
+
+        // Set publishedAt if status is published
+        if (status === 'published') {
+            articleData.publishedAt = new Date();
+        }
 
         // Validate required fields
         if (!articleData.image) {
@@ -484,7 +505,8 @@ exports.archiveArticle = async (req, res) => {
 // Get articles by type (analysis, story, notable)
 exports.getArticlesByType = async (req, res) => {
     try {
-        const { type, page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10 } = req.query;
+        const type = req.params.type;  // Get type from route parameter, not query
         
         // Map type to category if needed
         const categoryMap = {
@@ -494,6 +516,8 @@ exports.getArticlesByType = async (req, res) => {
         };
         
         const category = categoryMap[type] || type;
+        
+        console.log('getArticlesByType called with type:', type, 'mapped to category:', category);
         
         const articles = await Article.find({ 
             category,
@@ -509,6 +533,8 @@ exports.getArticlesByType = async (req, res) => {
             category,
             status: 'published'
         });
+
+        console.log('Found', articles.length, 'articles for category:', category);
 
         res.json({
             articles,

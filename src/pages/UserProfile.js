@@ -3,7 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import defaultMaleAvatar from '../assets/images/mann.png';
 import defaultFemaleAvatar from '../assets/images/frau.png';
-import { FiEdit2, FiSave, FiX } from 'react-icons/fi';
+import { FiEdit2, FiSave, FiX, FiCamera, FiTrash2 } from 'react-icons/fi';
+import { getUserAvatarUrl } from '../utils/imageUtils';
 
 const UserProfile = () => {
   const { t } = useTranslation();
@@ -14,6 +15,7 @@ const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [imageError, setImageError] = useState('');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -27,12 +29,24 @@ const UserProfile = () => {
     linkedin: ''
   });
 
+  // Maximum file size (5MB)
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+  const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
   useEffect(() => {
     if (user) {
+      // Format date properly for date input
+      const formatDateForInput = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+        return date.toISOString().split('T')[0];
+      };
+
       setFormData(prev => ({
         ...prev,
         name: user.name || '',
-        dateOfBirth: user.dateOfBirth || '',
+        dateOfBirth: formatDateForInput(user.dateOfBirth),
         gender: user.gender || '',
         location: user.location || '',
         bio: user.bio || '',
@@ -41,16 +55,68 @@ const UserProfile = () => {
         twitter: user.twitter || '',
         linkedin: user.linkedin || ''
       }));
-      setPreviewUrl(user.profileImage || (user.gender === 'female' ? defaultFemaleAvatar : defaultMaleAvatar));
+      
+      // Use utility function for avatar URL
+      setPreviewUrl(getUserAvatarUrl(user));
     }
   }, [user]);
 
+  // Clear success message after 3 seconds
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => setSuccess(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
+
+  const validateImage = (file) => {
+    if (!file) return true;
+    
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return t('Please select a valid image file (JPEG, PNG, or WebP)');
+    }
+    
+    if (file.size > MAX_FILE_SIZE) {
+      return t('Image size must be less than 5MB');
+    }
+    
+    return true;
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    setImageError('');
+    
     if (file) {
+      const validation = validateImage(file);
+      if (validation !== true) {
+        setImageError(validation);
+        e.target.value = ''; // Clear the input
+        return;
+      }
+      
       setProfileImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      
+      // Create preview URL and handle cleanup
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      
+      // Cleanup previous object URL
+      return () => URL.revokeObjectURL(objectUrl);
     }
+  };
+
+  const handleRemoveImage = () => {
+    setProfileImage(null);
+    
+    // Reset to default avatar
+    const defaultAvatar = user?.gender === 'female' ? defaultFemaleAvatar : defaultMaleAvatar;
+    setPreviewUrl(defaultAvatar);
+    setImageError('');
+    
+    // Clear file input
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) fileInput.value = '';
   };
 
   const handleInputChange = (e) => {
@@ -59,6 +125,9 @@ const UserProfile = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Clear error when user starts typing
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -69,9 +138,17 @@ const UserProfile = () => {
 
     try {
       const formDataToSend = new FormData();
+      
       if (profileImage) {
+        const validation = validateImage(profileImage);
+        if (validation !== true) {
+          setError(validation);
+          setLoading(false);
+          return;
+        }
         formDataToSend.append('profileImage', profileImage);
       }
+      
       Object.keys(formData).forEach(key => {
         if (formData[key]) {
           formDataToSend.append(key, formData[key]);
@@ -81,10 +158,44 @@ const UserProfile = () => {
       await updateProfile(formDataToSend);
       setSuccess(true);
       setIsEditing(false);
+      setProfileImage(null); // Clear the file state after successful upload
     } catch (err) {
       setError(err.response?.data?.msg || t('Failed to update profile'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setError('');
+    setImageError('');
+    setProfileImage(null);
+    
+    // Reset form data to original user data
+    if (user) {
+      // Format date properly for date input
+      const formatDateForInput = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+        return date.toISOString().split('T')[0];
+      };
+
+      setFormData({
+        name: user.name || '',
+        dateOfBirth: formatDateForInput(user.dateOfBirth),
+        gender: user.gender || '',
+        location: user.location || '',
+        bio: user.bio || '',
+        profession: user.profession || '',
+        website: user.website || '',
+        twitter: user.twitter || '',
+        linkedin: user.linkedin || ''
+      });
+      
+      // Use utility function for avatar URL
+      setPreviewUrl(getUserAvatarUrl(user));
     }
   };
 
@@ -95,8 +206,9 @@ const UserProfile = () => {
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{t('Profile')}</h1>
             <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="flex items-center px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition"
+              onClick={() => isEditing ? handleCancel() : setIsEditing(true)}
+              className="flex items-center px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition disabled:opacity-50"
+              disabled={loading}
             >
               {isEditing ? (
                 <>
@@ -115,24 +227,42 @@ const UserProfile = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Profile Image Section */}
             <div className="flex flex-col items-center space-y-4">
-              <div className="relative">
+              <div className="relative group">
                 <img
                   src={previewUrl}
                   alt={formData.name || t('Profile')}
                   className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-lg"
                 />
                 {isEditing && (
-                  <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600 transition">
-                    <FiEdit2 className="w-4 h-4" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </label>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-2">
+                      <label className="bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600 transition">
+                        <FiCamera className="w-4 h-4" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="hidden"
+                        />
+                      </label>
+                      {profileImage && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
+                        >
+                          <FiTrash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
+              
+              {imageError && (
+                <p className="text-red-500 text-sm text-center">{imageError}</p>
+              )}
+              
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
                 {formData.name || t('Your Name')}
               </h2>
@@ -145,7 +275,7 @@ const UserProfile = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('Name')}
+                  {t('Name')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -153,6 +283,7 @@ const UserProfile = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   disabled={!isEditing}
+                  required
                   className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition text-gray-900 dark:text-white"
                 />
               </div>
@@ -213,8 +344,12 @@ const UserProfile = () => {
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   rows="4"
+                  maxLength="500"
                   className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition text-gray-900 dark:text-white"
                 />
+                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {formData.bio.length}/500 {t('characters')}
+                </div>
               </div>
 
               <div>
@@ -241,6 +376,7 @@ const UserProfile = () => {
                   value={formData.website}
                   onChange={handleInputChange}
                   disabled={!isEditing}
+                  placeholder="https://example.com"
                   className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition text-gray-900 dark:text-white"
                 />
               </div>
@@ -255,6 +391,7 @@ const UserProfile = () => {
                   value={formData.twitter}
                   onChange={handleInputChange}
                   disabled={!isEditing}
+                  placeholder="@username"
                   className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition text-gray-900 dark:text-white"
                 />
               </div>
@@ -269,6 +406,7 @@ const UserProfile = () => {
                   value={formData.linkedin}
                   onChange={handleInputChange}
                   disabled={!isEditing}
+                  placeholder="linkedin.com/in/username"
                   className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition text-gray-900 dark:text-white"
                 />
               </div>
@@ -276,22 +414,30 @@ const UserProfile = () => {
 
             {/* Error and Success Messages */}
             {error && (
-              <div className="text-red-500 text-center font-medium p-2 bg-red-50 dark:bg-red-900/10 rounded">
+              <div className="text-red-600 text-center font-medium p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                 {error}
               </div>
             )}
             {success && (
-              <div className="text-green-500 text-center font-medium p-2 bg-green-50 dark:bg-green-900/10 rounded">
+              <div className="text-green-600 text-center font-medium p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 {t('Profile updated successfully')}
               </div>
             )}
 
             {/* Submit Button */}
             {isEditing && (
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  disabled={loading}
+                  className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:ring-4 focus:ring-gray-500/50 disabled:opacity-50 transition"
+                >
+                  {t('Cancel')}
+                </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !formData.name.trim()}
                   className="flex items-center px-6 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 focus:ring-4 focus:ring-emerald-500/50 disabled:opacity-50 transition"
                 >
                   <FiSave className="mr-2" />
@@ -306,4 +452,4 @@ const UserProfile = () => {
   );
 };
 
-export default UserProfile; 
+export default UserProfile;

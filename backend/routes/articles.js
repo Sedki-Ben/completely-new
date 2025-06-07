@@ -60,6 +60,11 @@ router.get('/type/:type', [
 // @access  Public
 router.get('/slug/:slug', articlesController.getArticleBySlug);
 
+// @route   GET /api/articles/:id
+// @desc    Get article by ID
+// @access  Public
+router.get('/:id', articlesController.getArticle);
+
 // @route   POST /api/articles
 // @desc    Create new article
 // @access  Private/Writer

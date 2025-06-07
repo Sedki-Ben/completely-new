@@ -1,16 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiHeart, FiMessageCircle, FiShare2 } from 'react-icons/fi';
+import { FiHeart, FiMessageCircle, FiShare2, FiArrowRight } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
-import { getArticlesByCategory, getLocalizedArticleContent, categoryTranslations } from '../data/articles';
+import { useArticles, getLocalizedArticleContent, categoryTranslations } from '../hooks/useArticles';
 import Newsletter from '../components/Newsletter';
 import Pagination from '../components/Pagination';
 
 function NotableWork() {
+  const { t, i18n } = useTranslation();
+  const { fetchArticlesByCategory, loading, error } = useArticles();
+  const [articles, setArticles] = useState([]);
   const [activeTab, setActiveTab] = useState('latest');
   const [currentPage, setCurrentPage] = useState(1);
-  const { t, i18n } = useTranslation();
-  const articles = getArticlesByCategory('notable-work');
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        // Map 'notable-work' to 'all-sports-hub' category
+        const categoryArticles = await fetchArticlesByCategory('all-sports-hub');
+        setArticles(categoryArticles || []);
+      } catch (error) {
+        console.error('Error loading articles:', error);
+      }
+    };
+
+    loadArticles();
+  }, [fetchArticlesByCategory]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">{t('Loading articles...')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400">{t('Error loading articles')}: {error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+          >
+            {t('Retry')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Sorting logic
   const sortedArticles = [...articles].sort((a, b) => {
@@ -86,14 +128,14 @@ function NotableWork() {
                     </span>
                   </div>
                   
-                  <Link to={`/article/${article.id}`}>
+                  <Link to={`/article/${article.slug || article.id}`}>
                     <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white mb-3 hover:text-purple-700 dark:hover:text-purple-400 transition-colors">
                       {localizedContent.title}
                     </h2>
                   </Link>
                   
                   <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3 font-sans text-base">
-                    {localizedContent.content[0].content}
+                    {localizedContent.excerpt || localizedContent.content?.[0]?.content}
                   </p>
                   
                   <div className="flex items-center gap-4 text-sm">

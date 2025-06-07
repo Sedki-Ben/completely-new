@@ -1,7 +1,7 @@
 import React from 'react';
 import { FiHeart, FiMessageCircle, FiShare2, FiBookmark } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
-import { getLocalizedArticleContent, categoryTranslations } from '../data/articles';
+import { getLocalizedArticleContent, categoryTranslations } from '../hooks/useArticles';
 import Newsletter from './Newsletter';
 
 function Article({ article }) {

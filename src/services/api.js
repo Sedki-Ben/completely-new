@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || '/api',
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
     headers: {
         'Content-Type': 'application/json'
     }
@@ -41,7 +41,14 @@ export const auth = {
     register: (userData) => api.post('/auth/register', userData),
     logout: () => api.post('/auth/logout'),
     getCurrentUser: () => api.get('/auth/me'),
-    updateProfile: (data) => api.put('/auth/profile', data),
+    updateProfile: (data) => {
+        if (data instanceof FormData) {
+            return api.put('/auth/profile', data, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+        }
+        return api.put('/auth/profile', data);
+    },
     changePassword: (currentPassword, newPassword) => api.put('/auth/password', { currentPassword, newPassword }),
     forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
     resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password })
@@ -52,6 +59,7 @@ export const articles = {
     getAll: (params) => api.get('/articles', { params }),
     getByType: (type, params) => api.get(`/articles/type/${type}`, { params }),
     getBySlug: (slug) => api.get(`/articles/slug/${slug}`),
+    getById: (id) => api.get(`/articles/${id}`),
     create: (data) => {
         if (data instanceof FormData) {
             return api.post('/articles', data, { headers: { 'Content-Type': 'multipart/form-data' } });

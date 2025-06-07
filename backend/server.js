@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const session = require('express-session');
+const path = require('path');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -32,6 +33,9 @@ app.use(session({
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files for uploaded images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/football_journal', {

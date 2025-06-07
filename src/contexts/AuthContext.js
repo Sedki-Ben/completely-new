@@ -91,14 +91,17 @@ export const AuthProvider = ({ children }) => {
 
     const updateProfile = async (formData) => {
         try {
+            console.log('Updating profile with data:', formData);
             const response = await api.put('/auth/profile', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
+            console.log('Profile update response:', response.data);
             setUser(response.data);
             return response.data;
         } catch (err) {
+            console.error('Profile update error:', err);
             setError(err.response?.data?.msg || 'Profile update failed');
             throw err;
         }

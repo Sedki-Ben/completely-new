@@ -4,10 +4,12 @@ import { useAuth } from '../contexts/AuthContext';
 import defaultMaleAvatar from '../assets/images/mann.png';
 import defaultFemaleAvatar from '../assets/images/frau.png';
 import { FiUser, FiLogOut, FiSettings, FiChevronDown, FiLayout } from 'react-icons/fi';
+import { getUserAvatarUrl } from '../utils/imageUtils';
 
 const UserAvatar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState('');
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -20,6 +22,19 @@ const UserAvatar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Update avatar URL when user data changes
+  useEffect(() => {
+    if (user) {
+      const newAvatarUrl = getUserAvatarUrl(user);
+      console.log('User data changed, updating avatar URL:', { 
+        userProfileImage: user.profileImage, 
+        newAvatarUrl, 
+        userGender: user.gender 
+      });
+      setAvatarUrl(newAvatarUrl);
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -42,8 +57,6 @@ const UserAvatar = () => {
     );
   }
 
-  const avatarUrl = user?.profileImage || (user?.gender === 'female' ? defaultFemaleAvatar : defaultMaleAvatar);
-
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -55,6 +68,9 @@ const UserAvatar = () => {
             src={avatarUrl}
             alt={user?.name || 'Profile'}
             className="w-10 h-10 rounded-full object-cover border-2 border-transparent group-hover:border-emerald-500 transition-all duration-300 shadow-md"
+            onError={(e) => {
+              e.target.src = user?.gender === 'female' ? defaultFemaleAvatar : defaultMaleAvatar;
+            }}
           />
           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900"></div>
         </div>
