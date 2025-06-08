@@ -7,7 +7,7 @@ import Pagination from '../components/Pagination';
 
 function EtoileDuSahel() {
   const { t } = useTranslation();
-  const { fetchArticlesByCategory, loading, error } = useArticles();
+  const { fetchArticlesByCategory, loading, error, articles: hookArticles } = useArticles();
   const [articles, setArticles] = useState([]);
   const [activeTab, setActiveTab] = useState('latest');
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,6 +25,15 @@ function EtoileDuSahel() {
 
     loadArticles();
   }, [fetchArticlesByCategory]);
+
+  // Update local articles when hook articles change (global cache updates)
+  useEffect(() => {
+    if (hookArticles.length > 0) {
+      // Filter for 'etoile-du-sahel' category only
+      const categoryArticles = hookArticles.filter(article => article.category === 'etoile-du-sahel');
+      setArticles(categoryArticles);
+    }
+  }, [hookArticles]);
 
   // Reset page when tab changes
   useEffect(() => {
@@ -62,7 +71,7 @@ function EtoileDuSahel() {
   // Sorting logic
   const sortedArticles = [...articles].sort((a, b) => {
     if (activeTab === 'top') {
-      return b.likes - a.likes;
+      return (typeof b.likes === 'object' ? (b.likes.count || 0) : (b.likes || 0)) - (typeof a.likes === 'object' ? (a.likes.count || 0) : (a.likes || 0));
     } else {
       // latest - sort by raw date for proper chronological order
       return new Date(b.rawDate || b.date) - new Date(a.rawDate || a.date);

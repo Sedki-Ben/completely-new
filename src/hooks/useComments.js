@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { comments as commentApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
-export const useComments = (articleId) => {
+export const useComments = (articleId, onCommentCountChange) => {
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -184,6 +184,17 @@ export const useComments = (articleId) => {
             fetchComments();
         }
     }, [articleId]);
+
+    // Calculate total comment count (including replies) and notify parent
+    useEffect(() => {
+        const totalCount = comments.reduce((total, comment) => {
+            return total + 1 + (comment.replies ? comment.replies.length : 0);
+        }, 0);
+        
+        if (onCommentCountChange) {
+            onCommentCountChange(totalCount);
+        }
+    }, [comments, onCommentCountChange]);
 
     return {
         comments,

@@ -160,12 +160,13 @@ articleSchema.index({ category: 1, status: 1, publishedAt: -1 });
 articleSchema.index({ author: 1, status: 1 });
 articleSchema.index({ slug: 1 });
 
-// Virtual for comments
+// Virtual for comments (only count active comments)
 articleSchema.virtual('commentCount', {
     ref: 'Comment',
     localField: '_id',
     foreignField: 'article',
-    count: true
+    count: true,
+    match: { status: 'active' }
 });
 
 // Check for duplicate title before saving

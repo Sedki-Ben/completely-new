@@ -199,7 +199,17 @@ exports.getArticle = async (req, res) => {
         // Increment views (async, don't wait for completion)
         article.incrementViews().catch(err => console.error('Error incrementing views:', err));
 
-        res.json(article);
+        // Add current user's like status to the response
+        const articleData = article.toObject();
+        if (req.user) {
+            articleData.isLikedByCurrentUser = article.likes.users.some(userId => 
+                userId.toString() === req.user.id.toString()
+            );
+        } else {
+            articleData.isLikedByCurrentUser = false;
+        }
+
+        res.json(articleData);
     } catch (error) {
         console.error('Get article error:', error);
         res.status(500).json({ message: 'Server error' });
@@ -361,7 +371,17 @@ exports.getArticleBySlug = async (req, res) => {
         // Increment views (async, don't wait for completion)
         article.incrementViews().catch(err => console.error('Error incrementing views:', err));
 
-        res.json(article);
+        // Add current user's like status to the response
+        const articleData = article.toObject();
+        if (req.user) {
+            articleData.isLikedByCurrentUser = article.likes.users.some(userId => 
+                userId.toString() === req.user.id.toString()
+            );
+        } else {
+            articleData.isLikedByCurrentUser = false;
+        }
+
+        res.json(articleData);
     } catch (error) {
         console.error('Get article by slug error:', error);
         res.status(500).json({ message: 'Server error' });

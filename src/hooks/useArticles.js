@@ -1,9 +1,56 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { articles as articlesAPI } from '../services/api';
 
 // Default author info to maintain consistency
 const DEFAULT_AUTHOR = "Sedki B.Haouala";
 const DEFAULT_AUTHOR_IMAGE = "/uploads/profile/bild3.jpg"; // Backend path
+
+// Global article cache to share across all hook instances
+const globalArticleCache = {
+  data: new Map(), // Map of article ID to article data
+  subscribers: new Set(), // Set of update callbacks
+  
+  // Update an article in the cache and notify all subscribers
+  updateArticle: (articleId, updates) => {
+    const current = globalArticleCache.data.get(articleId);
+    console.log('GlobalCache: Updating article', { articleId, updates, currentExists: !!current });
+    
+    if (current) {
+      const updated = { ...current, ...updates };
+      globalArticleCache.data.set(articleId, updated);
+      
+      console.log('GlobalCache: Notifying', globalArticleCache.subscribers.size, 'subscribers');
+      // Notify all subscribers
+      globalArticleCache.subscribers.forEach(callback => {
+        callback(articleId, updated);
+      });
+    } else {
+      console.warn('GlobalCache: Article not found in cache, cannot update:', articleId);
+      console.log('GlobalCache: Available articles:', Array.from(globalArticleCache.data.keys()));
+    }
+  },
+  
+  // Subscribe to article updates
+  subscribe: (callback) => {
+    globalArticleCache.subscribers.add(callback);
+    return () => globalArticleCache.subscribers.delete(callback);
+  },
+  
+  // Store articles in cache
+  cacheArticles: (articles) => {
+    articles.forEach(article => {
+      if (article.id) {
+        globalArticleCache.data.set(article.id, article);
+      }
+    });
+  }
+};
+
+// Global function to update comment count from anywhere in the app
+export const updateArticleCommentCount = (articleId, newCount) => {
+  console.log('updateArticleCommentCount called:', { articleId, newCount });
+  globalArticleCache.updateArticle(articleId, { comments: newCount });
+};
 
 // Category translations (keeping from original structure)
 export const categoryTranslations = {
@@ -40,6 +87,7 @@ const transformArticle = (article) => {
   
   return {
     id: article._id,
+    _id: article._id, // Keep both for compatibility
     translations: article.translations,
     author: article.author?.name || DEFAULT_AUTHOR,
     authorImage: article.authorImage ? `${backendUrl}${article.authorImage}` : `${backendUrl}${DEFAULT_AUTHOR_IMAGE}`,
@@ -51,11 +99,15 @@ const transformArticle = (article) => {
     rawDate: publishedDate, // Keep raw date for sorting
     image: article.image ? `${backendUrl}${article.image}` : null,
     category: article.category,
-    likes: article.likes?.count || 0,
+    likes: {
+      count: article.likes?.count || 0,
+      users: article.likes?.users || []
+    },
     comments: article.commentCount || 0,
     views: article.views || 0,
     slug: article.slug,
-    status: article.status
+    status: article.status,
+    isLikedByCurrentUser: article.isLikedByCurrentUser || false
   };
 };
 
@@ -76,6 +128,27 @@ export const useArticles = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Subscribe to global article updates
+  useEffect(() => {
+    console.log('useArticles: Subscribing to global cache updates');
+    const unsubscribe = globalArticleCache.subscribe((articleId, updatedArticle) => {
+      console.log('useArticles: Received update for article', articleId, updatedArticle);
+      setArticles(currentArticles => {
+        const updated = currentArticles.map(article => 
+          article.id === articleId ? updatedArticle : article
+        );
+        console.log('useArticles: Updated articles count:', updated.length);
+        return updated;
+      });
+    });
+    
+    // Cleanup subscription on unmount
+    return () => {
+      console.log('useArticles: Unsubscribing from global cache updates');
+      unsubscribe();
+    };
+  }, []);
+
   const fetchAllArticles = useCallback(async () => {
     try {
       setLoading(true);
@@ -85,6 +158,10 @@ export const useArticles = () => {
       console.log('All articles response:', response.data);
       const transformedArticles = response.data.articles?.map(transformArticle) || [];
       console.log('Transformed articles:', transformedArticles);
+      
+      // Cache articles globally
+      globalArticleCache.cacheArticles(transformedArticles);
+      
       setArticles(transformedArticles);
       return transformedArticles;
     } catch (err) {
@@ -105,6 +182,10 @@ export const useArticles = () => {
       console.log('Category articles response:', response.data);
       const transformedArticles = response.data.articles?.map(transformArticle) || [];
       console.log('Transformed category articles:', transformedArticles);
+      
+      // Cache articles globally
+      globalArticleCache.cacheArticles(transformedArticles);
+      
       return transformedArticles;
     } catch (err) {
       console.error('Error fetching articles by category:', err);
@@ -122,14 +203,28 @@ export const useArticles = () => {
       console.log('Fetching article by ID/slug:', id);
       const response = await articlesAPI.getBySlug(id); // Try slug first
       console.log('Article response:', response.data);
-      return transformArticle(response.data);
+      const transformedArticle = transformArticle(response.data);
+      
+      // Cache the article globally
+      if (transformedArticle) {
+        globalArticleCache.cacheArticles([transformedArticle]);
+      }
+      
+      return transformedArticle;
     } catch (err) {
       // If slug fails, try ID
       try {
         console.log('Slug failed, trying ID:', id);
         const response = await articlesAPI.getById(id);
         console.log('Article by ID response:', response.data);
-        return transformArticle(response.data);
+        const transformedArticle = transformArticle(response.data);
+        
+        // Cache the article globally
+        if (transformedArticle) {
+          globalArticleCache.cacheArticles([transformedArticle]);
+        }
+        
+        return transformedArticle;
       } catch (secondErr) {
         console.error('Error fetching article by ID/slug:', err, secondErr);
         setError(secondErr.response?.data?.message || 'Failed to fetch article');
@@ -156,7 +251,12 @@ export const getAllArticles = async () => {
     console.log('Standalone getAllArticles called');
     const response = await articlesAPI.getAll({ status: 'published' });
     console.log('Standalone all articles response:', response.data);
-    return response.data.articles?.map(transformArticle) || [];
+    const transformedArticles = response.data.articles?.map(transformArticle) || [];
+    
+    // Cache articles globally
+    globalArticleCache.cacheArticles(transformedArticles);
+    
+    return transformedArticles;
   } catch (err) {
     console.error('Error in standalone getAllArticles:', err);
     return [];
@@ -168,7 +268,12 @@ export const getArticlesByCategory = async (category) => {
     console.log('Standalone getArticlesByCategory called for:', category);
     const response = await articlesAPI.getByType(category, { status: 'published' });
     console.log('Standalone category articles response:', response.data);
-    return response.data.articles?.map(transformArticle) || [];
+    const transformedArticles = response.data.articles?.map(transformArticle) || [];
+    
+    // Cache articles globally
+    globalArticleCache.cacheArticles(transformedArticles);
+    
+    return transformedArticles;
   } catch (err) {
     console.error('Error in standalone getArticlesByCategory:', err);
     return [];
@@ -180,11 +285,25 @@ export const getArticleById = async (id) => {
     console.log('Standalone getArticleById called for:', id);
     const response = await articlesAPI.getBySlug(id);
     console.log('Standalone article response:', response.data);
-    return transformArticle(response.data);
+    const transformedArticle = transformArticle(response.data);
+    
+    // Cache the article globally
+    if (transformedArticle) {
+      globalArticleCache.cacheArticles([transformedArticle]);
+    }
+    
+    return transformedArticle;
   } catch (err) {
     try {
       const response = await articlesAPI.getById(id);
-      return transformArticle(response.data);
+      const transformedArticle = transformArticle(response.data);
+      
+      // Cache the article globally
+      if (transformedArticle) {
+        globalArticleCache.cacheArticles([transformedArticle]);
+      }
+      
+      return transformedArticle;
     } catch (secondErr) {
       console.error('Error in standalone getArticleById:', err, secondErr);
       return null;

@@ -7,7 +7,7 @@ import CommentForm from './CommentForm';
 import { FiMessageCircle, FiUser } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 
-const CommentsSection = ({ articleId, category, theme }) => {
+const CommentsSection = ({ articleId, category, theme, onCommentCountChange }) => {
     const { t, i18n } = useTranslation();
     const { isAuthenticated } = useAuth();
     const {
@@ -21,7 +21,7 @@ const CommentsSection = ({ articleId, category, theme }) => {
         reportComment,
         loadMoreComments,
         hasMoreComments
-    } = useComments(articleId);
+    } = useComments(articleId, onCommentCountChange);
 
     const isRTL = i18n.language === 'ar';
 

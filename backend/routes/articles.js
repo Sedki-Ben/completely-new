@@ -2,6 +2,7 @@ const express = require('express');
 const { check } = require('express-validator');
 const articlesController = require('../controllers/articleController');
 const auth = require('../middleware/auth');
+const optionalAuth = require('../middleware/optionalAuth');
 const isWriter = require('../middleware/isWriter');
 const multer = require('multer');
 const path = require('path');
@@ -57,13 +58,13 @@ router.get('/type/:type', [
 
 // @route   GET /api/articles/slug/:slug
 // @desc    Get article by slug
-// @access  Public
-router.get('/slug/:slug', articlesController.getArticleBySlug);
+// @access  Public (with optional auth)
+router.get('/slug/:slug', optionalAuth, articlesController.getArticleBySlug);
 
 // @route   GET /api/articles/:id
 // @desc    Get article by ID
-// @access  Public
-router.get('/:id', articlesController.getArticle);
+// @access  Public (with optional auth)
+router.get('/:id', optionalAuth, articlesController.getArticle);
 
 // @route   POST /api/articles
 // @desc    Create new article

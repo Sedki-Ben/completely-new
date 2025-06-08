@@ -114,7 +114,7 @@ const ArticleCard = ({ article, variant = 'default' }) => {
           
           <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
             <span className={`text-sm ${theme.text} flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
-              <span>{article.likes || 0}</span>
+              <span>{typeof article.likes === 'object' ? (article.likes.count || 0) : (article.likes || 0)}</span>
               <span>❤️</span>
             </span>
             <span className={`text-sm ${theme.text} flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>

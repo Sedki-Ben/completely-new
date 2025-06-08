@@ -8,7 +8,7 @@ import Pagination from '../components/Pagination';
 
 function Archive() {
   const { t, i18n } = useTranslation();
-  const { fetchAllArticles, loading, error } = useArticles();
+  const { fetchAllArticles, loading, error, articles: hookArticles } = useArticles();
   const [allArticles, setAllArticles] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,6 +25,13 @@ function Archive() {
 
     loadArticles();
   }, [fetchAllArticles]);
+
+  // Update local articles when hook articles change (global cache updates)
+  useEffect(() => {
+    if (hookArticles.length > 0) {
+      setAllArticles(hookArticles);
+    }
+  }, [hookArticles]);
 
   // Scroll to top on page change
   useEffect(() => {
@@ -167,7 +174,7 @@ function Archive() {
                     </span>
                     <div className="flex items-center space-x-4 text-gray-500 dark:text-gray-400">
                       <span className="flex items-center">
-                        <FiHeart className={i18n.language === 'ar' ? 'mx-2 h-4 w-4' : 'mr-1 h-4 w-4'} />{article.likes}
+                        <FiHeart className={i18n.language === 'ar' ? 'mx-2 h-4 w-4' : 'mr-1 h-4 w-4'} />{typeof article.likes === 'object' ? article.likes.count : article.likes}
                       </span>
                       <span className="flex items-center">
                         <FiMessageCircle className={i18n.language === 'ar' ? 'mx-2 h-4 w-4' : 'mr-1 h-4 w-4'} />{article.comments}

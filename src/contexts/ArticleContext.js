@@ -98,7 +98,10 @@ export const ArticleProvider = ({ children }) => {
             setArticles(prev => prev.map(article => 
                 article._id === id ? {
                     ...article,
-                    likes: response.data.likes
+                    likes: {
+                        count: response.data.likes,
+                        users: article.likes?.users || []
+                    }
                 } : article
             ));
             return response.data;

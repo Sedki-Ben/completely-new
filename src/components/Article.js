@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiHeart, FiMessageCircle, FiBookmark, FiEdit3, FiTrash2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { articles as articleApi } from '../services/api';
-import { getLocalizedArticleContent, categoryTranslations } from '../hooks/useArticles';
+import { getLocalizedArticleContent, categoryTranslations, updateArticleCommentCount } from '../hooks/useArticles';
 import Newsletter from './Newsletter';
 import CommentsSection from './CommentsSection';
 
@@ -14,8 +14,24 @@ function Article({ article }) {
   const navigate = useNavigate();
   const [articleData, setArticleData] = useState(article);
   const [likeLoading, setLikeLoading] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
   
   const isAdmin = user?.role === 'admin';
+
+  // Check if user has liked this article on component mount and when user/article changes
+  useEffect(() => {
+    console.log('Like state initialization:', {
+      user: user?._id,
+      isLikedByCurrentUser: articleData.isLikedByCurrentUser,
+      articleId: articleData._id
+    });
+    
+    if (user && articleData.isLikedByCurrentUser !== undefined) {
+      setIsLiked(articleData.isLikedByCurrentUser);
+    } else {
+      setIsLiked(false);
+    }
+  }, [user, articleData.isLikedByCurrentUser]);
   
   if (!articleData) {
     return <div>{t('No articles available')}</div>;
@@ -38,14 +54,18 @@ function Article({ article }) {
         return;
       }
       const response = await articleApi.toggleLike(articleId);
+      
+      // Update the like state based on backend response
+      setIsLiked(response.data.isLiked);
+      
+      // Update article data with new like count and like status
       setArticleData(prev => ({
         ...prev,
         likes: {
-          count: response.data.likes,
-          users: response.data.isLiked 
-            ? [...(prev.likes?.users || []), user._id]
-            : (prev.likes?.users || []).filter(id => id !== user._id)
-        }
+          ...prev.likes,
+          count: response.data.likes
+        },
+        isLikedByCurrentUser: response.data.isLiked
       }));
     } catch (error) {
       console.error('Failed to toggle like:', error);
@@ -442,7 +462,7 @@ function Article({ article }) {
     {isAdmin && (
       <>
         {/* Admin Edit Button */}
-        <div className={`fixed bottom-8 z-50 ${isRTL ? 'left-24' : 'right-24'}`}>
+        <div className={`fixed bottom-8 z-50 ${isRTL ? 'left-28' : 'right-28'}`}>
           <button
             onClick={() => navigate(`/admin/edit-article/${articleData._id || articleData.id}`)}
             className="group relative w-16 h-16 bg-white dark:bg-gray-800 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 hover:shadow-xl"
@@ -478,7 +498,7 @@ function Article({ article }) {
         </div>
 
         {/* Admin Delete Button */}
-        <div className={`fixed bottom-8 z-50 ${isRTL ? 'left-44' : 'right-44'}`}>
+        <div className={`fixed bottom-8 z-50 ${isRTL ? 'left-48' : 'right-48'}`}>
           <button
             onClick={handleUnpublish}
             className="group relative w-16 h-16 bg-white dark:bg-gray-800 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 hover:shadow-xl"
@@ -516,11 +536,11 @@ function Article({ article }) {
     )}
 
     {/* Floating Like Button */}
-    <div className={`fixed bottom-8 z-50 ${isRTL ? 'left-8' : 'right-8'}`}>
+    <div className={`fixed bottom-8 z-50 ${isRTL ? 'left-8' : 'right-8'} group`}>
       <button
         onClick={handleLikeToggle}
         disabled={likeLoading}
-        className={`group relative w-16 h-16 bg-white dark:bg-gray-800 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 hover:shadow-xl ${likeLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`relative w-16 h-16 bg-white dark:bg-gray-800 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 hover:shadow-xl ${likeLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
         style={{
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
         }}
@@ -534,7 +554,7 @@ function Article({ article }) {
         
         <FiHeart 
           className={`w-8 h-8 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${
-            user && articleData.likes?.users?.includes(user._id)
+            isLiked
               ? `${theme.icon} fill-current`
               : `text-gray-600 dark:text-gray-300 group-hover:${theme.icon}`
           }`}
@@ -543,12 +563,12 @@ function Article({ article }) {
       
       {/* Tooltip */}
       <div 
-        className={`absolute bottom-full ${isRTL ? 'left-0' : 'right-0'} mb-2 px-3 py-1 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap`}
+        className={`absolute bottom-full ${isRTL ? 'left-0' : 'right-0'} mb-2 px-3 py-1 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none`}
         style={{
           backgroundColor: theme.icon.includes('red') ? '#dc2626' : theme.icon.includes('green') ? '#16a34a' : theme.icon.includes('purple') ? '#9333ea' : theme.icon.includes('yellow') ? '#ca8a04' : '#374151'
         }}
       >
-        {user && articleData.likes?.users?.includes(user._id) ? t('Unlike') : t('Like this article')}
+        {isLiked ? t('Unlike') : t('Like this article')}
         <div 
           className={`absolute top-full ${isRTL ? 'left-4' : 'right-4'} w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent`}
           style={{
@@ -563,6 +583,19 @@ function Article({ article }) {
       articleId={articleData._id || articleData.id} 
       category={articleData.category}
       theme={theme}
+      onCommentCountChange={(newCount) => {
+        // Update local article state
+        setArticleData(prev => ({
+          ...prev,
+          comments: newCount
+        }));
+        
+        // Update global article cache to notify all category pages
+        const articleId = articleData._id || articleData.id;
+        if (articleId) {
+          updateArticleCommentCount(articleId, newCount);
+        }
+      }}
     />
 
     {/* Newsletter Section */}

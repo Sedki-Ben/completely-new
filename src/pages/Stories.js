@@ -10,7 +10,7 @@ function Stories() {
   const [activeTab, setActiveTab] = useState('latest');
   const [currentPage, setCurrentPage] = useState(1);
   const { t, i18n } = useTranslation();
-  const { fetchArticlesByCategory, loading, error } = useArticles();
+  const { fetchArticlesByCategory, loading, error, articles: hookArticles } = useArticles();
   const [articles, setArticles] = useState([]);
 
   useEffect(() => {
@@ -26,6 +26,15 @@ function Stories() {
 
     loadArticles();
   }, [fetchArticlesByCategory]);
+
+  // Update local articles when hook articles change (global cache updates)
+  useEffect(() => {
+    if (hookArticles.length > 0) {
+      // Filter for 'the-beautiful-game' category only
+      const categoryArticles = hookArticles.filter(article => article.category === 'the-beautiful-game');
+      setArticles(categoryArticles);
+    }
+  }, [hookArticles]);
 
   if (loading) {
     return (
@@ -57,7 +66,7 @@ function Stories() {
   // Sorting logic
   const sortedArticles = [...articles].sort((a, b) => {
     if (activeTab === 'top') {
-      return b.likes - a.likes;
+      return (typeof b.likes === 'object' ? (b.likes.count || 0) : (b.likes || 0)) - (typeof a.likes === 'object' ? (a.likes.count || 0) : (a.likes || 0));
     } else {
       // latest
       return new Date(b.date) - new Date(a.date);
@@ -144,7 +153,7 @@ function Stories() {
                     </span>
                     <div className="flex items-center space-x-4 text-gray-500 dark:text-gray-400">
                       <span className="flex items-center">
-                        <FiHeart className={i18n.language === 'ar' ? 'mx-2 h-4 w-4' : 'mr-1 h-4 w-4'} />{article.likes}
+                        <FiHeart className={i18n.language === 'ar' ? 'mx-2 h-4 w-4' : 'mr-1 h-4 w-4'} />{typeof article.likes === 'object' ? article.likes.count : article.likes}
                       </span>
                       <span className="flex items-center">
                         <FiMessageCircle className={i18n.language === 'ar' ? 'mx-2 h-4 w-4' : 'mr-1 h-4 w-4'} />{article.comments}
