@@ -78,7 +78,8 @@ export const articles = {
     getStats: () => api.get('/articles/stats/me'),
     getDrafts: () => api.get('/articles/drafts/me'),
     publish: (id) => api.post(`/articles/${id}/publish`),
-    archive: (id) => api.post(`/articles/${id}/archive`)
+    archive: (id) => api.post(`/articles/${id}/archive`),
+    unpublish: (id) => api.post(`/articles/${id}/unpublish`)
 };
 
 // Comment endpoints

@@ -560,7 +560,7 @@ const ArticlePreview = ({ title, mainImage, blocks, tags, type, language }) => {
       
       {mainImage && (
         <img
-          src={mainImage.preview}
+          src={mainImage.preview || mainImage}
           alt="Main article"
           className="w-full h-64 object-cover rounded-lg mb-6"
         />
@@ -573,14 +573,26 @@ const ArticlePreview = ({ title, mainImage, blocks, tags, type, language }) => {
       {tags && (
         <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex flex-wrap gap-2">
-            {tags.split(',').map((tag, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm"
-              >
-                {tag.trim()}
-              </span>
-            ))}
+            {tags.split(',').map((tag, index) => {
+              // Theme colors based on article type
+              const themeColors = {
+                'etoile-du-sahel': 'px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-full text-sm font-medium transition-colors cursor-pointer hover:text-red-900 dark:hover:text-red-400',
+                'the-beautiful-game': 'px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium transition-colors cursor-pointer hover:text-green-900 dark:hover:text-green-400',
+                'all-sports-hub': 'px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full text-sm font-medium transition-colors cursor-pointer hover:text-purple-900 dark:hover:text-purple-400',
+                'archive': 'px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-sm font-medium transition-colors cursor-pointer hover:text-yellow-900 dark:hover:text-yellow-400',
+                default: 'px-3 py-1 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-full text-sm font-medium transition-colors cursor-pointer hover:text-gray-900 dark:hover:text-gray-400'
+              };
+              const tagClass = themeColors[type] || themeColors.default;
+              
+              return (
+                <span
+                  key={index}
+                  className={tagClass}
+                >
+                  #{tag.trim()}
+                </span>
+              );
+            })}
           </div>
         </div>
       )}
@@ -592,19 +604,19 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
   // Multilingual content state
   const [currentLanguage, setCurrentLanguage] = useState('en');
   const [titles, setTitles] = useState({
-    en: initialData.titles?.en || '',
-    fr: initialData.titles?.fr || '',
-    ar: initialData.titles?.ar || ''
+    en: initialData?.titles?.en || '',
+    fr: initialData?.titles?.fr || '',
+    ar: initialData?.titles?.ar || ''
   });
   const [contentBlocks, setContentBlocks] = useState({
-    en: initialData.content?.en || [],
-    fr: initialData.content?.fr || [],
-    ar: initialData.content?.ar || []
+    en: initialData?.content?.en || [],
+    fr: initialData?.content?.fr || [],
+    ar: initialData?.content?.ar || []
   });
   
-  const [mainImage, setMainImage] = useState(initialData.image || null);
-  const [tags, setTags] = useState(initialData.tags ? initialData.tags.join(', ') : '');
-  const [type, setType] = useState(initialData.type || types[0]);
+  const [mainImage, setMainImage] = useState(initialData?.image || null);
+  const [tags, setTags] = useState(initialData?.tags ? initialData.tags.join(', ') : '');
+  const [type, setType] = useState(initialData?.type || types[0]);
   const [localError, setLocalError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [draggedBlockIndex, setDraggedBlockIndex] = useState(null);
@@ -765,6 +777,8 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
     // Add main image
     if (mainImage?.file) {
       formData.append('image', mainImage.file);
+    } else if (typeof mainImage === 'string') {
+      formData.append('existingImage', mainImage);
     }
     
     // Add content images
@@ -864,7 +878,7 @@ const ArticleEditor = ({ onSave, onCancel, initialData = {}, loading = false, er
               {mainImage ? (
                 <div className="relative group">
                   <img
-                    src={mainImage.preview}
+                    src={typeof mainImage === 'string' ? mainImage : mainImage.preview}
                     alt="Main article"
                     className="w-full h-64 object-cover rounded-lg"
                   />

@@ -1,5 +1,6 @@
 const Comment = require('../models/Comment');
 const Article = require('../models/Article');
+const User = require('../models/User');
 const { validationResult } = require('express-validator');
 
 // Create comment
@@ -86,8 +87,14 @@ exports.updateComment = async (req, res) => {
             return res.status(404).json({ message: 'Comment not found' });
         }
 
-        // Check ownership
-        if (comment.author.toString() !== req.user.id) {
+        // Check ownership or admin privileges
+        const isOwner = comment.author.toString() === req.user.id;
+        
+        // Fetch user to check admin status
+        const user = await User.findById(req.user.id);
+        const isAdmin = user && user.role === 'admin';
+        
+        if (!isOwner && !isAdmin) {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
@@ -114,8 +121,14 @@ exports.deleteComment = async (req, res) => {
             return res.status(404).json({ message: 'Comment not found' });
         }
 
-        // Check ownership
-        if (comment.author.toString() !== req.user.id) {
+        // Check ownership or admin privileges
+        const isOwner = comment.author.toString() === req.user.id;
+        
+        // Fetch user to check admin status
+        const user = await User.findById(req.user.id);
+        const isAdmin = user && user.role === 'admin';
+        
+        if (!isOwner && !isAdmin) {
             return res.status(403).json({ message: 'Not authorized' });
         }
 

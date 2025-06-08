@@ -96,5 +96,11 @@
   "Write a reply...": "Écrire une réponse...",
   "Tags": "Étiquettes",
   "Like this article": "Aimer cet article",
-  "Unlike": "Ne plus aimer"
+  "Unlike": "Ne plus aimer",
+  "Delete as Admin": "Supprimer en tant qu'Admin",
+  "Edit Article": "Modifier l'Article",
+  "Unpublish Article": "Dépublier l'Article",
+  "Are you sure you want to unpublish this article? It will be moved to drafts and no longer visible to users.": "Êtes-vous sûr de vouloir dépublier cet article ? Il sera déplacé vers les brouillons et ne sera plus visible pour les utilisateurs.",
+  "Article has been unpublished successfully": "L'article a été dépublié avec succès",
+  "Failed to unpublish article. Please try again.": "Échec de la dépublication de l'article. Veuillez réessayer."
 } 

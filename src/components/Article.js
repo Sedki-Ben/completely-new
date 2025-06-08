@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { FiHeart, FiMessageCircle, FiBookmark } from 'react-icons/fi';
+import { FiHeart, FiMessageCircle, FiBookmark, FiEdit3, FiTrash2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { articles as articleApi } from '../services/api';
 import { getLocalizedArticleContent, categoryTranslations } from '../hooks/useArticles';
 import Newsletter from './Newsletter';
@@ -10,8 +11,11 @@ import CommentsSection from './CommentsSection';
 function Article({ article }) {
   const { i18n, t } = useTranslation();
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [articleData, setArticleData] = useState(article);
   const [likeLoading, setLikeLoading] = useState(false);
+  
+  const isAdmin = user?.role === 'admin';
   
   if (!articleData) {
     return <div>{t('No articles available')}</div>;
@@ -47,6 +51,35 @@ function Article({ article }) {
       console.error('Failed to toggle like:', error);
     } finally {
       setLikeLoading(false);
+    }
+  };
+
+  // Handle article unpublish (admin only)
+  const handleUnpublish = async () => {
+    if (!isAdmin) {
+      return;
+    }
+
+    const confirmed = window.confirm(t('Are you sure you want to unpublish this article? It will be moved to drafts and no longer visible to users.'));
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const articleId = articleData._id || articleData.id;
+      if (!articleId) {
+        console.error('No article ID found:', articleData);
+        return;
+      }
+      
+      await articleApi.unpublish(articleId);
+      
+      // Show success message and redirect to home or admin dashboard
+      alert(t('Article has been unpublished successfully'));
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to unpublish article:', error);
+      alert(t('Failed to unpublish article. Please try again.'));
     }
   };
 
@@ -405,20 +438,91 @@ function Article({ article }) {
 
     </article>
 
+    {/* Admin Buttons */}
+    {isAdmin && (
+      <>
+        {/* Admin Edit Button */}
+        <div className={`fixed bottom-8 z-50 ${isRTL ? 'left-24' : 'right-24'}`}>
+          <button
+            onClick={() => navigate(`/admin/edit-article/${articleData._id || articleData.id}`)}
+            className="group relative w-16 h-16 bg-white dark:bg-gray-800 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 hover:shadow-xl"
+            style={{
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+            }}
+          >
+            <div 
+              className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300"
+              style={{
+                background: `linear-gradient(45deg, ${theme.icon.includes('red') ? '#dc2626, #ef4444' : theme.icon.includes('green') ? '#16a34a, #22c55e' : theme.icon.includes('purple') ? '#9333ea, #a855f7' : theme.icon.includes('yellow') ? '#ca8a04, #eab308' : '#374151, #6b7280'})`
+              }}
+            ></div>
+            
+            <FiEdit3 className={`w-8 h-8 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 text-gray-600 dark:text-gray-300 group-hover:${theme.icon}`} />
+            
+            {/* Tooltip */}
+            <div 
+              className={`absolute bottom-full ${isRTL ? 'left-0' : 'right-0'} mb-2 px-3 py-1 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap`}
+              style={{
+                backgroundColor: theme.icon.includes('red') ? '#dc2626' : theme.icon.includes('green') ? '#16a34a' : theme.icon.includes('purple') ? '#9333ea' : theme.icon.includes('yellow') ? '#ca8a04' : '#374151'
+              }}
+            >
+              {t('Edit Article')}
+              <div 
+                className={`absolute top-full ${isRTL ? 'left-4' : 'right-4'} w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent`}
+                style={{
+                  borderTopColor: theme.icon.includes('red') ? '#dc2626' : theme.icon.includes('green') ? '#16a34a' : theme.icon.includes('purple') ? '#9333ea' : theme.icon.includes('yellow') ? '#ca8a04' : '#374151'
+                }}
+              ></div>
+            </div>
+          </button>
+        </div>
+
+        {/* Admin Delete Button */}
+        <div className={`fixed bottom-8 z-50 ${isRTL ? 'left-44' : 'right-44'}`}>
+          <button
+            onClick={handleUnpublish}
+            className="group relative w-16 h-16 bg-white dark:bg-gray-800 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 hover:shadow-xl"
+            style={{
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+            }}
+          >
+            <div 
+              className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300"
+              style={{
+                background: `linear-gradient(45deg, ${theme.icon.includes('red') ? '#dc2626, #ef4444' : theme.icon.includes('green') ? '#16a34a, #22c55e' : theme.icon.includes('purple') ? '#9333ea, #a855f7' : theme.icon.includes('yellow') ? '#ca8a04, #eab308' : '#374151, #6b7280'})`
+              }}
+            ></div>
+            
+            <FiTrash2 className={`w-8 h-8 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 text-gray-600 dark:text-gray-300 group-hover:${theme.icon}`} />
+            
+            {/* Tooltip */}
+            <div 
+              className={`absolute bottom-full ${isRTL ? 'left-0' : 'right-0'} mb-2 px-3 py-1 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap`}
+              style={{
+                backgroundColor: theme.icon.includes('red') ? '#dc2626' : theme.icon.includes('green') ? '#16a34a' : theme.icon.includes('purple') ? '#9333ea' : theme.icon.includes('yellow') ? '#ca8a04' : '#374151'
+              }}
+            >
+              {t('Unpublish Article')}
+              <div 
+                className={`absolute top-full ${isRTL ? 'left-4' : 'right-4'} w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent`}
+                style={{
+                  borderTopColor: theme.icon.includes('red') ? '#dc2626' : theme.icon.includes('green') ? '#16a34a' : theme.icon.includes('purple') ? '#9333ea' : theme.icon.includes('yellow') ? '#ca8a04' : '#374151'
+                }}
+              ></div>
+            </div>
+          </button>
+        </div>
+      </>
+    )}
+
     {/* Floating Like Button */}
     <div className={`fixed bottom-8 z-50 ${isRTL ? 'left-8' : 'right-8'}`}>
       <button
         onClick={handleLikeToggle}
         disabled={likeLoading}
-        className={`group relative w-16 h-16 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ${
-          user && articleData.likes?.users?.includes(user._id)
-            ? `${theme.light} shadow-lg`
-            : 'bg-white dark:bg-gray-800 hover:shadow-xl'
-        } ${likeLoading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-2xl'}`}
+        className={`group relative w-16 h-16 bg-white dark:bg-gray-800 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 hover:shadow-xl ${likeLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
         style={{
-          boxShadow: user && articleData.likes?.users?.includes(user._id) 
-            ? `0 10px 25px ${theme.icon.includes('red') ? 'rgba(239, 68, 68, 0.3)' : theme.icon.includes('green') ? 'rgba(34, 197, 94, 0.3)' : theme.icon.includes('purple') ? 'rgba(168, 85, 247, 0.3)' : theme.icon.includes('yellow') ? 'rgba(234, 179, 8, 0.3)' : 'rgba(107, 114, 128, 0.3)'}`
-            : '0 4px 20px rgba(0, 0, 0, 0.15)'
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
         }}
       >
         <div 
@@ -431,26 +535,10 @@ function Article({ article }) {
         <FiHeart 
           className={`w-8 h-8 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${
             user && articleData.likes?.users?.includes(user._id)
-              ? `${theme.icon} fill-current animate-pulse`
+              ? `${theme.icon} fill-current`
               : `text-gray-600 dark:text-gray-300 group-hover:${theme.icon}`
           }`}
         />
-        
-        {/* Like count badge */}
-        <div className={`absolute -top-2 -right-2 min-w-[24px] h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-          user && articleData.likes?.users?.includes(user._id) ? theme.light.replace('bg-', 'bg-').replace('text-', '').split(' ')[0] : 'bg-gray-600'
-        }`}>
-          {articleData.likes?.count || 0}
-        </div>
-        
-        {/* Floating hearts animation */}
-        {user && articleData.likes?.users?.includes(user._id) && (
-          <div className="absolute inset-0 pointer-events-none">
-            <FiHeart className={`absolute w-3 h-3 ${theme.icon} opacity-60 animate-bounce`} style={{ top: '10%', left: '20%', animationDelay: '0s' }} />
-            <FiHeart className={`absolute w-2 h-2 ${theme.icon} opacity-40 animate-bounce`} style={{ top: '15%', right: '25%', animationDelay: '0.5s' }} />
-            <FiHeart className={`absolute w-2 h-2 ${theme.icon} opacity-30 animate-bounce`} style={{ bottom: '20%', left: '15%', animationDelay: '1s' }} />
-          </div>
-        )}
       </button>
       
       {/* Tooltip */}

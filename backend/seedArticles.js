@@ -155,7 +155,7 @@ const sampleArticles = [
 
 async function seedArticles() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/football_journal');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ptc-blog');
     console.log('Connected to MongoDB');
 
     // Find an existing user or create a default one
@@ -175,9 +175,15 @@ async function seedArticles() {
       console.log('Created default user');
     }
 
-    // Clear existing articles
-    await Article.deleteMany({});
-    console.log('Cleared existing articles');
+    // Check if sample articles already exist (don't delete user-created articles!)
+    const existingArticles = await Article.find({});
+    console.log(`Found ${existingArticles.length} existing articles - preserving them`);
+    
+    if (existingArticles.length > 0) {
+      console.log('Articles already exist in database. Skipping seeding to preserve existing content.');
+      console.log('If you want to add sample articles, please do so through the admin interface.');
+      process.exit(0);
+    }
 
     // Create sample articles with staggered publish dates for proper sorting
     const now = new Date();

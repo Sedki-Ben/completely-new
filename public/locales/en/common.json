@@ -96,5 +96,11 @@
   "Write a reply...": "Write a reply...",
   "Tags": "Tags",
   "Like this article": "Like this article",
-  "Unlike": "Unlike"
+  "Unlike": "Unlike",
+  "Delete as Admin": "Delete as Admin",
+  "Edit Article": "Edit Article",
+  "Unpublish Article": "Unpublish Article",
+  "Are you sure you want to unpublish this article? It will be moved to drafts and no longer visible to users.": "Are you sure you want to unpublish this article? It will be moved to drafts and no longer visible to users.",
+  "Article has been unpublished successfully": "Article has been unpublished successfully",
+  "Failed to unpublish article. Please try again.": "Failed to unpublish article. Please try again."
 } 

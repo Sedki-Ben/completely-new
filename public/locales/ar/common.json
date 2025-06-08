@@ -96,5 +96,11 @@
   "Write a reply...": "اكتب رداً...",
   "Tags": "العلامات",
   "Like this article": "أعجب بهذا المقال",
-  "Unlike": "إلغاء الإعجاب"
+  "Unlike": "إلغاء الإعجاب",
+  "Delete as Admin": "حذف كمدير",
+  "Edit Article": "تعديل المقال",
+  "Unpublish Article": "إلغاء نشر المقال",
+  "Are you sure you want to unpublish this article? It will be moved to drafts and no longer visible to users.": "هل أنت متأكد من إلغاء نشر هذا المقال؟ سيتم نقله إلى المسودات ولن يعود مرئياً للمستخدمين.",
+  "Article has been unpublished successfully": "تم إلغاء نشر المقال بنجاح",
+  "Failed to unpublish article. Please try again.": "فشل في إلغاء نشر المقال. يرجى المحاولة مرة أخرى."
 } 

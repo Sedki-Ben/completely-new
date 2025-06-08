@@ -160,5 +160,10 @@ router.post('/:id/publish', [auth, isWriter], articlesController.publishArticle)
 // @access  Private/Writer
 router.post('/:id/archive', [auth, isWriter], articlesController.archiveArticle);
 
+// @route   POST /api/articles/:id/unpublish
+// @desc    Unpublish an article (change from published to draft)
+// @access  Private/Admin
+router.post('/:id/unpublish', auth, articlesController.unpublishArticle);
+
 module.exports = router; 
  

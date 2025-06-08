@@ -235,6 +235,9 @@ exports.updateArticle = async (req, res) => {
         // Handle image upload
         if (req.file) {
             updateData.image = `/uploads/${req.file.filename}`;
+        } else if (req.body.existingImage) {
+            // Keep existing image if no new file uploaded
+            updateData.image = req.body.existingImage;
         }
 
         const updatedArticle = await Article.findByIdAndUpdate(
@@ -535,6 +538,37 @@ exports.archiveArticle = async (req, res) => {
         });
     } catch (error) {
         console.error('Archive article error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Unpublish an article (change from published to draft)
+exports.unpublishArticle = async (req, res) => {
+    try {
+        const article = await Article.findById(req.params.id);
+
+        if (!article) {
+            return res.status(404).json({ message: 'Article not found' });
+        }
+
+        // Check admin role only (as requested by user)
+        const User = require('../models/User');
+        const user = await User.findById(req.user.id);
+        const isAdmin = user && user.role === 'admin';
+        
+        if (!isAdmin) {
+            return res.status(403).json({ message: 'Not authorized. Admin access required.' });
+        }
+
+        article.status = 'draft';
+        await article.save();
+
+        res.json({ 
+            message: 'Article unpublished (moved to draft)',
+            article: await article.populate('author', 'name email')
+        });
+    } catch (error) {
+        console.error('Unpublish article error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };

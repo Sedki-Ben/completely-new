@@ -145,6 +145,7 @@ function AppContent() {
           <Route path="/about" element={<About />} />
           <Route path="/article/:id" element={<ArticlePage />} />
           <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+          <Route path="/admin/edit-article/:id" element={<ProtectedAdminRoute><AdminDashboard editMode={true} /></ProtectedAdminRoute>} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />

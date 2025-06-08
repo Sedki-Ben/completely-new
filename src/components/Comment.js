@@ -25,6 +25,7 @@ const Comment = ({
     const isRTL = i18n.language === 'ar';
     const isAuthor = user && comment.author._id === user._id;
     const hasLiked = user && comment.likes?.users?.includes(user._id);
+    const isAdmin = user?.role === 'admin';
 
     // Get theme colors or default
     const themeColors = theme || {
@@ -155,7 +156,17 @@ const Comment = ({
                                         </button>
                                     </>
                                 )}
-                                {!isAuthor && isAuthenticated && (
+                                {/* Admin can always delete comments */}
+                                {!isAuthor && isAdmin && (
+                                    <button
+                                        onClick={handleDelete}
+                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    >
+                                        <FiTrash2 className="w-4 h-4" />
+                                        {t('Delete as Admin')}
+                                    </button>
+                                )}
+                                {!isAuthor && !isAdmin && isAuthenticated && (
                                     <button
                                         onClick={handleReport}
                                         className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
