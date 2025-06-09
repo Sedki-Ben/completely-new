@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiMail, FiTwitter, FiPenTool, FiCoffee, FiBriefcase, FiBookOpen, FiLinkedin, FiCheckSquare, FiFacebook, FiTarget, FiHeart, FiUsers, FiGlobe, FiBarChart2, FiAward, FiTrendingUp } from 'react-icons/fi';
+import { FiMail, FiTwitter, FiPenTool, FiCoffee, FiBriefcase, FiBookOpen, FiLinkedin, FiCheckSquare, FiFacebook, FiTarget, FiHeart, FiUsers, FiGlobe, FiBarChart2, FiAward, FiTrendingUp, FiCopy, FiCheck } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import Newsletter from '../components/Newsletter';
 
@@ -7,8 +7,11 @@ function About() {
   const { t, i18n } = useTranslation();
   const [animatedStats, setAnimatedStats] = useState([0, 0, 0, 0]);
   const [isVisible, setIsVisible] = useState(false);
+  const [emailCopied, setEmailCopied] = useState(false);
+  const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   
   const isRTL = i18n.language === 'ar';
+  const emailAddress = 'sbhsportslab@gmail.com';
 
   // Stats data
   const stats = [
@@ -115,6 +118,24 @@ function About() {
       });
     }
   }, [isVisible]);
+
+  const handleEmailCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(emailAddress);
+      setEmailCopied(true);
+      setTimeout(() => setEmailCopied(false), 2000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = emailAddress;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setEmailCopied(true);
+      setTimeout(() => setEmailCopied(false), 2000);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-gray-900">
@@ -287,16 +308,37 @@ function About() {
                 </p>
                 
                 <div className="flex justify-center gap-6 flex-wrap">
-                  <a 
-                    href="mailto:contact@puretacticscartel.com"
-                    className="group flex items-center gap-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                  >
-                    <FiMail className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    {t('Email')}
-                  </a>
+                  <div className="relative">
+                    <button 
+                      onClick={handleEmailCopy}
+                      onMouseEnter={() => setShowEmailTooltip(true)}
+                      onMouseLeave={() => setShowEmailTooltip(false)}
+                      className="group flex items-center gap-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                    >
+                      {emailCopied ? (
+                        <FiCheck className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                      ) : (
+                        <FiMail className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                      )}
+                      {emailCopied ? 'Copied!' : t('Email')}
+                    </button>
+                    
+                    {/* Email tooltip */}
+                    {showEmailTooltip && !emailCopied && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-sm rounded-lg shadow-lg z-10">
+                        <div className="flex items-center gap-2">
+                          <span>{emailAddress}</span>
+                          <FiCopy className="w-4 h-4" />
+                        </div>
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+                      </div>
+                    )}
+                  </div>
                   
                   <a 
-                    href="https://twitter.com/puretactics"
+                    href="https://x.com/sedki25"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="group flex items-center gap-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     <FiTwitter className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -304,19 +346,13 @@ function About() {
                   </a>
                   
                   <a 
-                    href="https://facebook.com/puretacticscartel"
+                    href="https://www.facebook.com/profile.php?id=100009033914272"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="group flex items-center gap-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     <FiFacebook className="w-5 h-5 group-hover:scale-110 transition-transform" />
                     {t('Facebook')}
-                  </a>
-                  
-                  <a 
-                    href="https://linkedin.com/company/puretacticscartel"
-                    className="group flex items-center gap-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                  >
-                    <FiLinkedin className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    {t('LinkedIn')}
                   </a>
                 </div>
               </div>

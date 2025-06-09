@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { FiHeart, FiMessageCircle, FiEdit, FiTrash2, FiFlag, FiMoreVertical } from 'react-icons/fi';
 import { getUserAvatarUrl } from '../utils/imageUtils';
 import CommentForm from './CommentForm';
+import defaultMaleAvatar from '../assets/images/mann.png';
+import defaultFemaleAvatar from '../assets/images/frau.png';
 
 const Comment = ({ 
     comment, 
@@ -107,6 +109,9 @@ const Comment = ({
                         src={getUserAvatarUrl(comment.author)}
                         alt={comment.author.name}
                         className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                        onError={(e) => {
+                            e.target.src = comment.author.gender === 'female' ? defaultFemaleAvatar : defaultMaleAvatar;
+                        }}
                     />
                     <div className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}>
                         <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>

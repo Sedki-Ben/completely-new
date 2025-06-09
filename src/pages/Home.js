@@ -17,15 +17,52 @@ function Home() {
   useEffect(() => {
     const loadArticles = async () => {
       try {
-        const [etoile, beautiful, sports] = await Promise.all([
-          fetchArticlesByCategory('etoile-du-sahel'),
-          fetchArticlesByCategory('the-beautiful-game'),
-          fetchArticlesByCategory('all-sports-hub')
+        // First try to use cached articles for each category
+        const [cachedEtoile, cachedBeautiful, cachedSports] = await Promise.all([
+          fetchArticlesByCategory('etoile-du-sahel', true),
+          fetchArticlesByCategory('the-beautiful-game', true),
+          fetchArticlesByCategory('all-sports-hub', true)
         ]);
         
-        setEtoileArticles(etoile || []);
-        setBeautifulGameArticles(beautiful || []);
-        setAllSportsArticles(sports || []);
+        // Set initial articles from cache if available
+        if (cachedEtoile && cachedEtoile.length > 0) setEtoileArticles(cachedEtoile);
+        if (cachedBeautiful && cachedBeautiful.length > 0) setBeautifulGameArticles(cachedBeautiful);
+        if (cachedSports && cachedSports.length > 0) setAllSportsArticles(cachedSports);
+        
+        // Fetch fresh articles for categories that have insufficient cache
+        const refreshPromises = [];
+        
+        if (!cachedEtoile || cachedEtoile.length < 3) {
+          refreshPromises.push(
+            fetchArticlesByCategory('etoile-du-sahel', false).then(articles => {
+              if (articles) setEtoileArticles(articles);
+              return articles;
+            })
+          );
+        }
+        
+        if (!cachedBeautiful || cachedBeautiful.length < 3) {
+          refreshPromises.push(
+            fetchArticlesByCategory('the-beautiful-game', false).then(articles => {
+              if (articles) setBeautifulGameArticles(articles);
+              return articles;
+            })
+          );
+        }
+        
+        if (!cachedSports || cachedSports.length < 3) {
+          refreshPromises.push(
+            fetchArticlesByCategory('all-sports-hub', false).then(articles => {
+              if (articles) setAllSportsArticles(articles);
+              return articles;
+            })
+          );
+        }
+        
+        // Wait for any necessary refreshes
+        if (refreshPromises.length > 0) {
+          await Promise.all(refreshPromises);
+        }
       } catch (error) {
         console.error('Error loading articles:', error);
       }
@@ -113,14 +150,14 @@ function Home() {
               
               <div className="relative">
                 <div className="flex justify-between items-center mb-10">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-700 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Link to="/etoile-du-sahel" className="flex items-center gap-4 group">
+                    <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                       <FiStar className="text-2xl text-white" />
                     </div>
-                    <h2 className={`text-4xl font-serif font-bold ${themeColors['etoile-du-sahel'].text}`}>
+                    <h2 className={`text-4xl font-serif font-bold ${themeColors['etoile-du-sahel'].text} group-hover:scale-105 transition-transform duration-300`}>
                       {t('Etoile Du Sahel')}
                     </h2>
-                  </div>
+                  </Link>
                   <Link 
                     to="/etoile-du-sahel" 
                     className={`flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-medium`}
@@ -198,14 +235,14 @@ function Home() {
               
               <div className="relative">
                 <div className="flex justify-between items-center mb-10">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-700 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Link to="/the-beautiful-game" className="flex items-center gap-4 group">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                       <span className="text-2xl">⚽</span>
                     </div>
-                    <h2 className={`text-4xl font-serif font-bold ${themeColors['the-beautiful-game'].text}`}>
+                    <h2 className={`text-4xl font-serif font-bold ${themeColors['the-beautiful-game'].text} group-hover:scale-105 transition-transform duration-300`}>
                       {t('The Beautiful Game')}
                     </h2>
-                  </div>
+                  </Link>
                   <Link 
                     to="/the-beautiful-game" 
                     className={`flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-medium`}
@@ -283,14 +320,14 @@ function Home() {
               
               <div className="relative">
                 <div className="flex justify-between items-center mb-10">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Link to="/all-sports-hub" className="flex items-center gap-4 group">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                       <GiBoxingGlove className="text-2xl text-white" />
                     </div>
-                    <h2 className={`text-4xl font-serif font-bold ${themeColors['all-sports-hub'].text}`}>
+                    <h2 className={`text-4xl font-serif font-bold ${themeColors['all-sports-hub'].text} group-hover:scale-105 transition-transform duration-300`}>
                       {t('All-Sports Hub')}
                     </h2>
-                  </div>
+                  </Link>
                   <Link 
                     to="/all-sports-hub" 
                     className={`flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-medium`}

@@ -16,8 +16,16 @@ function AllSportsHub() {
   useEffect(() => {
     const loadArticles = async () => {
       try {
-        const categoryArticles = await fetchArticlesByCategory('all-sports-hub');
+        // Try cache first, then fetch if not available
+        const categoryArticles = await fetchArticlesByCategory('all-sports-hub', true);
         setArticles(categoryArticles || []);
+        
+        // If we got very few articles from cache, refresh from API
+        if (!categoryArticles || categoryArticles.length < 3) {
+          console.log('Cache empty or insufficient, refreshing from API');
+          const freshArticles = await fetchArticlesByCategory('all-sports-hub', false);
+          setArticles(freshArticles || []);
+        }
       } catch (error) {
         console.error('Error loading articles:', error);
       }
@@ -70,8 +78,10 @@ function AllSportsHub() {
 
   // Sorting logic
   const sortedArticles = [...articles].sort((a, b) => {
-    if (activeTab === 'top') {
+    if (activeTab === 'most-liked') {
       return (typeof b.likes === 'object' ? (b.likes.count || 0) : (b.likes || 0)) - (typeof a.likes === 'object' ? (a.likes.count || 0) : (a.likes || 0));
+    } else if (activeTab === 'most-discussed') {
+      return (typeof b.comments === 'object' ? (b.comments.count || 0) : (b.comments || 0)) - (typeof a.comments === 'object' ? (a.comments.count || 0) : (a.comments || 0));
     } else {
       // latest - sort by raw date for proper chronological order
       return new Date(b.rawDate || b.date) - new Date(a.rawDate || a.date);
@@ -102,7 +112,7 @@ function AllSportsHub() {
       <div className="max-w-4xl mx-auto mb-12">
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-purple-100 dark:border-purple-800/30 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-transparent rounded-full transform translate-x-10 -translate-y-10"></div>
-          <div className="flex space-x-4 relative">
+          <div className="flex gap-4 justify-center relative">
             <button
               onClick={() => setActiveTab('latest')}
               className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
@@ -114,14 +124,24 @@ function AllSportsHub() {
               {t('Latest')}
             </button>
             <button
-              onClick={() => setActiveTab('top')}
+              onClick={() => setActiveTab('most-liked')}
               className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-                activeTab === 'top'
+                activeTab === 'most-liked'
                   ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg'
                   : 'text-gray-600 hover:bg-purple-50 dark:text-gray-300 dark:hover:bg-purple-900/10'
               }`}
             >
-              {t('Top')}
+              {t('Most Liked')}
+            </button>
+            <button
+              onClick={() => setActiveTab('most-discussed')}
+              className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                activeTab === 'most-discussed'
+                  ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-purple-50 dark:text-gray-300 dark:hover:bg-purple-900/10'
+              }`}
+            >
+              {t('Most Discussed')}
             </button>
           </div>
         </div>

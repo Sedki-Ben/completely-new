@@ -121,10 +121,17 @@ const UserProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
+    const newFormData = {
+      ...formData,
       [name]: value
-    }));
+    };
+    setFormData(newFormData);
+    
+    // Update preview URL if gender changes and no custom image is selected
+    if (name === 'gender' && !profileImage) {
+      const updatedUser = { ...user, gender: value };
+      setPreviewUrl(getUserAvatarUrl(updatedUser));
+    }
     
     // Clear error when user starts typing
     if (error) setError('');
@@ -232,6 +239,9 @@ const UserProfile = () => {
                   src={previewUrl}
                   alt={formData.name || t('Profile')}
                   className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-lg"
+                  onError={(e) => {
+                    e.target.src = formData.gender === 'female' ? defaultFemaleAvatar : defaultMaleAvatar;
+                  }}
                 />
                 {isEditing && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
@@ -316,7 +326,6 @@ const UserProfile = () => {
                   <option value="">{t('Select Gender')}</option>
                   <option value="male">{t('Male')}</option>
                   <option value="female">{t('Female')}</option>
-                  <option value="other">{t('Other')}</option>
                 </select>
               </div>
 

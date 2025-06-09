@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserAvatarUrl } from '../utils/imageUtils';
+import defaultMaleAvatar from '../assets/images/mann.png';
+import defaultFemaleAvatar from '../assets/images/frau.png';
 
 const CommentForm = ({ 
     onSubmit, 
@@ -70,6 +72,9 @@ const CommentForm = ({
                         src={getUserAvatarUrl(user)}
                         alt={user.name}
                         className="w-10 h-10 rounded-full object-cover flex-shrink-0 mt-1"
+                        onError={(e) => {
+                            e.target.src = user.gender === 'female' ? defaultFemaleAvatar : defaultMaleAvatar;
+                        }}
                     />
                 )}
                 <div className="flex-1">

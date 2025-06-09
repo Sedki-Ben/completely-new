@@ -4,21 +4,39 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { articles as articleApi } from '../services/api';
-import { getLocalizedArticleContent, categoryTranslations, updateArticleCommentCount } from '../hooks/useArticles';
+import { getLocalizedArticleContent, categoryTranslations, updateArticleCommentCount, useArticles } from '../hooks/useArticles';
 import Newsletter from './Newsletter';
 import CommentsSection from './CommentsSection';
+import ArticleNavigation from './ArticleNavigation';
 
 function Article({ article }) {
   const { i18n, t } = useTranslation();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { getNavigationArticles } = useArticles();
   const [articleData, setArticleData] = useState(article);
   const [likeLoading, setLikeLoading] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [navigationArticles, setNavigationArticles] = useState({ previousArticle: null, nextArticle: null });
+  const [navigationLoading, setNavigationLoading] = useState(false);
   
   const isAdmin = user?.role === 'admin';
 
-  // Check if user has liked this article on component mount and when user/article changes
+  // Update article data when prop changes
+  useEffect(() => {
+    console.log('Article prop changed, updating article data:', article.id || article._id);
+    setArticleData(article);
+    // Reset navigation when article changes
+    setNavigationArticles({ previousArticle: null, nextArticle: null });
+    // Only set loading if we actually have a category (avoid unnecessary loading states)
+    if (article && article.category) {
+      setNavigationLoading(true);
+    } else {
+      setNavigationLoading(false);
+    }
+  }, [article]);
+
+  // Check if user has liked this article when user or article changes
   useEffect(() => {
     console.log('Like state initialization:', {
       user: user?._id,
@@ -32,6 +50,80 @@ function Article({ article }) {
       setIsLiked(false);
     }
   }, [user, articleData.isLikedByCurrentUser]);
+
+  // Fetch navigation articles when article data changes
+  useEffect(() => {
+    let isActive = true; // Prevent race conditions
+    let timeoutId = null; // Safety timeout
+    
+    const loadNavigationArticles = async () => {
+      if (articleData && articleData.category) {
+        console.log('Loading navigation articles for:', articleData.id || articleData._id, 'category:', articleData.category);
+        setNavigationLoading(true);
+        
+        // Small delay to allow category pages to populate cache first
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Safety timeout to prevent stuck loading state
+        timeoutId = setTimeout(() => {
+          if (isActive) {
+            console.warn('Navigation loading timeout reached, clearing loading state');
+            setNavigationArticles({ previousArticle: null, nextArticle: null });
+            setNavigationLoading(false);
+          }
+        }, 5000); // Reduced to 5 seconds since we have better error handling now
+        
+        try {
+          const navArticles = await getNavigationArticles(articleData);
+          
+          // Clear timeout since we got a response
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+          
+          // Only update state if this effect is still active
+          if (isActive) {
+            console.log('Setting navigation articles:', {
+              hasPrevious: !!navArticles.previousArticle,
+              hasNext: !!navArticles.nextArticle,
+              previousTitle: navArticles.previousArticle?.translations?.en?.title?.substring(0, 30),
+              nextTitle: navArticles.nextArticle?.translations?.en?.title?.substring(0, 30)
+            });
+            setNavigationArticles(navArticles);
+            setNavigationLoading(false);
+          }
+        } catch (error) {
+          console.error('Error loading navigation articles:', error);
+          
+          // Clear timeout
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+          
+          if (isActive) {
+            // Even on error, clear loading state
+            setNavigationArticles({ previousArticle: null, nextArticle: null });
+            setNavigationLoading(false);
+          }
+        }
+      } else {
+        console.log('No article data or category, clearing navigation loading');
+        setNavigationLoading(false);
+      }
+    };
+
+    loadNavigationArticles();
+    
+    // Cleanup function to prevent race conditions
+    return () => {
+      isActive = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [articleData.id, articleData._id, articleData.category]);
   
   if (!articleData) {
     return <div>{t('No articles available')}</div>;
@@ -457,6 +549,14 @@ function Article({ article }) {
       </div>
 
     </article>
+
+    {/* Article Navigation */}
+    <ArticleNavigation 
+      currentArticle={articleData}
+      previousArticle={navigationArticles.previousArticle}
+      nextArticle={navigationArticles.nextArticle}
+      loading={navigationLoading}
+    />
 
     {/* Admin Buttons */}
     {isAdmin && (

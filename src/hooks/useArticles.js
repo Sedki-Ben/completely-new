@@ -9,6 +9,7 @@ const DEFAULT_AUTHOR_IMAGE = "/uploads/profile/bild3.jpg"; // Backend path
 const globalArticleCache = {
   data: new Map(), // Map of article ID to article data
   subscribers: new Set(), // Set of update callbacks
+  categoryCache: new Map(), // Map of category to sorted articles
   
   // Update an article in the cache and notify all subscribers
   updateArticle: (articleId, updates) => {
@@ -43,6 +44,21 @@ const globalArticleCache = {
         globalArticleCache.data.set(article.id, article);
       }
     });
+  },
+  
+  // Cache articles by category
+  cacheCategoryArticles: (category, articles) => {
+    // Sort articles by publication date (newest first)
+    const sortedArticles = [...articles].sort((a, b) => 
+      new Date(b.rawDate || b.date) - new Date(a.rawDate || a.date)
+    );
+    globalArticleCache.categoryCache.set(category, sortedArticles);
+    globalArticleCache.cacheArticles(articles);
+  },
+  
+  // Get cached category articles
+  getCategoryArticles: (category) => {
+    return globalArticleCache.categoryCache.get(category) || null;
   }
 };
 
@@ -173,8 +189,17 @@ export const useArticles = () => {
     }
   }, []);
 
-  const fetchArticlesByCategory = useCallback(async (category) => {
+  const fetchArticlesByCategory = useCallback(async (category, useCache = true) => {
     try {
+      // Check cache first if requested
+      if (useCache) {
+        const cachedArticles = globalArticleCache.getCategoryArticles(category);
+        if (cachedArticles) {
+          console.log('Using cached articles for category:', category, cachedArticles.length);
+          return cachedArticles;
+        }
+      }
+      
       setLoading(true);
       setError(null);
       console.log('Fetching articles for category:', category);
@@ -183,8 +208,8 @@ export const useArticles = () => {
       const transformedArticles = response.data.articles?.map(transformArticle) || [];
       console.log('Transformed category articles:', transformedArticles);
       
-      // Cache articles globally
-      globalArticleCache.cacheArticles(transformedArticles);
+      // Cache articles globally with category-specific cache
+      globalArticleCache.cacheCategoryArticles(category, transformedArticles);
       
       return transformedArticles;
     } catch (err) {
@@ -235,13 +260,142 @@ export const useArticles = () => {
     }
   }, []);
 
+  // Private function to fetch category articles without affecting global loading state
+  const fetchCategoryArticlesForNavigation = useCallback(async (category, useCache = true) => {
+    try {
+      // Check cache first if requested
+      if (useCache) {
+        const cachedArticles = globalArticleCache.getCategoryArticles(category);
+        if (cachedArticles) {
+          console.log('Using cached articles for navigation:', category, cachedArticles.length);
+          return cachedArticles;
+        }
+      }
+      
+      console.log('Fetching articles for navigation (no loading state):', category);
+      const response = await articlesAPI.getByType(category, { status: 'published' });
+      const transformedArticles = response.data.articles?.map(transformArticle) || [];
+      
+      // Cache articles globally with category-specific cache
+      globalArticleCache.cacheCategoryArticles(category, transformedArticles);
+      
+      return transformedArticles;
+    } catch (err) {
+      console.error('Error fetching navigation articles:', err);
+      return [];
+    }
+  }, []);
+
+  // Get navigation articles (previous/next) in the same category
+  const getNavigationArticles = useCallback(async (currentArticle) => {
+    try {
+      console.log('Getting navigation articles for:', currentArticle.id || currentArticle._id, 'category:', currentArticle.category);
+      
+      // Always try cache first
+      let categoryArticles = await fetchCategoryArticlesForNavigation(currentArticle.category, true);
+      
+      console.log('Cache check result:', {
+        category: currentArticle.category,
+        cached: !!categoryArticles,
+        count: categoryArticles?.length || 0
+      });
+      
+      // If cache is empty, insufficient, or doesn't contain the current article, fetch from API
+      const hasCurrentArticle = categoryArticles?.some(article => 
+        article.id === currentArticle.id || article._id === currentArticle._id ||
+        article.id === currentArticle._id || article._id === currentArticle.id
+      );
+      
+      if (!categoryArticles || categoryArticles.length <= 1 || !hasCurrentArticle) {
+        console.log('Cache insufficient or missing current article, fetching from API for category:', currentArticle.category);
+        console.log('Reasons:', {
+          noCachedArticles: !categoryArticles,
+          insufficientCount: categoryArticles?.length <= 1,
+          missingCurrentArticle: !hasCurrentArticle
+        });
+        
+        try {
+          categoryArticles = await fetchCategoryArticlesForNavigation(currentArticle.category, false);
+          console.log('Fetched fresh articles from API:', categoryArticles?.length || 0);
+        } catch (apiError) {
+          console.error('Failed to fetch from API:', apiError);
+          // Fall back to whatever we had from cache, even if insufficient
+          categoryArticles = categoryArticles || [];
+        }
+      }
+      
+      // Articles are already sorted by fetchCategoryArticlesForNavigation when cached
+      const sortedArticles = categoryArticles || [];
+      
+      console.log('Final articles for navigation:', {
+        total: sortedArticles.length,
+        category: currentArticle.category,
+        currentArticleId: currentArticle.id || currentArticle._id
+      });
+      
+      if (sortedArticles.length === 0) {
+        console.warn('No articles found in category:', currentArticle.category);
+        return { previousArticle: null, nextArticle: null };
+      }
+      
+      // Find current article with more robust matching
+      const currentIndex = sortedArticles.findIndex(article => {
+        const articleId = article.id || article._id;
+        const currentId = currentArticle.id || currentArticle._id;
+        return articleId === currentId || 
+               article.slug === currentArticle.slug ||
+               (article._id === currentArticle.id) ||
+               (article.id === currentArticle._id);
+      });
+      
+      console.log('Current article search:', {
+        currentIndex,
+        currentId: currentArticle.id || currentArticle._id,
+        currentSlug: currentArticle.slug,
+        availableIds: sortedArticles.slice(0, 5).map(a => ({ 
+          id: a.id, 
+          _id: a._id, 
+          slug: a.slug,
+          title: a.translations?.en?.title?.substring(0, 30) 
+        }))
+      });
+      
+      if (currentIndex === -1) {
+        console.warn('Current article not found in category list - this should not happen after API fetch');
+        
+        // Return empty navigation if we can't find the current article
+        return { previousArticle: null, nextArticle: null };
+      }
+      
+      // Previous article is the next in chronological order (older)
+      const previousArticle = sortedArticles[currentIndex + 1] || null;
+      // Next article is the previous in chronological order (newer)
+      const nextArticle = sortedArticles[currentIndex - 1] || null;
+      
+      console.log('Navigation articles result:', { 
+        currentIndex, 
+        total: sortedArticles.length,
+        hasPrevious: !!previousArticle,
+        hasNext: !!nextArticle,
+        previousTitle: previousArticle?.translations?.en?.title?.substring(0, 30),
+        nextTitle: nextArticle?.translations?.en?.title?.substring(0, 30)
+      });
+      
+      return { previousArticle, nextArticle };
+    } catch (error) {
+      console.error('Error fetching navigation articles:', error);
+      return { previousArticle: null, nextArticle: null };
+    }
+  }, [fetchCategoryArticlesForNavigation]);
+
   return {
     articles,
     loading,
     error,
     fetchAllArticles,
     fetchArticlesByCategory,
-    fetchArticleById
+    fetchArticleById,
+    getNavigationArticles
   };
 };
 
