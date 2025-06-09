@@ -69,7 +69,7 @@ function AppContent() {
                 className={`px-3 py-2 rounded-lg font-medium text-sm transition-all duration-300 ${
                   isActiveRoute('/') 
                   ? 'bg-slate-600 dark:bg-slate-700 text-white shadow-md' 
-                  : 'text-black dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700'
+                  : 'text-black dark:text-gray-300 hover:bg-slate-100/80 hover:text-slate-700 dark:hover:bg-slate-800/20 dark:hover:text-slate-400'
                 }`}
               >
                 {t('Home')}
@@ -123,8 +123,8 @@ function AppContent() {
                 to="/about" 
                 className={`px-3 py-2 rounded-lg font-medium text-sm transition-all duration-300 ${
                   isActiveRoute('/about') 
-                  ? 'bg-gray-600 dark:bg-gray-700 text-white shadow-md' 
-                  : 'text-black dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ? 'bg-blue-600 dark:bg-blue-700 text-white shadow-md' 
+                  : 'text-black dark:text-gray-300 hover:bg-blue-100/80 hover:text-blue-700 dark:hover:bg-blue-800/20 dark:hover:text-blue-400'
                 }`}
               >
                 {t('About')}

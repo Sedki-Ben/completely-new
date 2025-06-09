@@ -87,33 +87,44 @@ function EtoileDuSahel() {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-serif font-bold text-red-900 dark:text-red-400 mb-8">
-        {t('Etoile Du Sahel')}
-      </h1>
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-rose-100 dark:from-gray-900 dark:via-red-900/20 dark:to-gray-900">
+            <div className="container mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="text-center mb-16 relative">
+          <div className="absolute inset-0 bg-red-500/5 dark:bg-red-400/10 rounded-full blur-3xl transform -translate-y-12"></div>
+          <h1 className="text-6xl font-serif font-bold bg-gradient-to-r from-red-600 via-red-700 to-red-800 dark:from-red-400 dark:via-red-300 dark:to-red-200 bg-clip-text text-transparent mb-6 relative">
+            {t('Etoile Du Sahel')}
+          </h1>
+          <div className="w-24 h-1 bg-gradient-to-r from-red-500 to-red-700 mx-auto rounded-full"></div>
+        </div>
 
       {/* Tab Navigation */}
-      <div className="flex space-x-4 mb-8">
-        <button
-          onClick={() => setActiveTab('latest')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            activeTab === 'latest'
-              ? 'bg-red-900 text-white dark:bg-red-800'
-              : 'text-gray-600 hover:bg-red-50 dark:text-gray-300 dark:hover:bg-red-900/10'
-          }`}
-        >
-          {t('Latest')}
-        </button>
-        <button
-          onClick={() => setActiveTab('top')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            activeTab === 'top'
-              ? 'bg-red-900 text-white dark:bg-red-800'
-              : 'text-gray-600 hover:bg-red-50 dark:text-gray-300 dark:hover:bg-red-900/10'
-          }`}
-        >
-          {t('Top')}
-        </button>
+      <div className="max-w-4xl mx-auto mb-12">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-red-100 dark:border-red-800/30 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-red-500/10 to-transparent rounded-full transform translate-x-10 -translate-y-10"></div>
+          <div className="flex space-x-4 relative">
+            <button
+              onClick={() => setActiveTab('latest')}
+              className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                activeTab === 'latest'
+                  ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-red-50 dark:text-gray-300 dark:hover:bg-red-900/10'
+              }`}
+            >
+              {t('Latest')}
+            </button>
+            <button
+              onClick={() => setActiveTab('top')}
+              className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                activeTab === 'top'
+                  ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-red-50 dark:text-gray-300 dark:hover:bg-red-900/10'
+              }`}
+            >
+              {t('Top')}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Articles Grid */}
@@ -136,6 +147,7 @@ function EtoileDuSahel() {
       {/* Newsletter */}
       <div className="mt-12">
         <Newsletter variant="etoile-du-sahel" />
+      </div>
       </div>
     </div>
   );

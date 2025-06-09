@@ -87,33 +87,44 @@ function TheBeautifulGame() {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-serif font-bold text-green-900 dark:text-green-400 mb-8">
-        {t('The Beautiful Game')}
-      </h1>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-teal-50 to-emerald-100 dark:from-gray-900 dark:via-green-900/20 dark:to-gray-900">
+            <div className="container mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="text-center mb-16 relative">
+          <div className="absolute inset-0 bg-green-500/5 dark:bg-green-400/10 rounded-full blur-3xl transform -translate-y-12"></div>
+          <h1 className="text-6xl font-serif font-bold bg-gradient-to-r from-green-600 via-green-700 to-green-800 dark:from-green-400 dark:via-green-300 dark:to-green-200 bg-clip-text text-transparent mb-6 relative">
+            {t('The Beautiful Game')}
+          </h1>
+          <div className="w-24 h-1 bg-gradient-to-r from-green-500 to-green-700 mx-auto rounded-full"></div>
+        </div>
 
       {/* Tab Navigation */}
-      <div className="flex space-x-4 mb-8">
-        <button
-          onClick={() => setActiveTab('latest')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            activeTab === 'latest'
-              ? 'bg-green-900 text-white dark:bg-green-800'
-              : 'text-gray-600 hover:bg-green-50 dark:text-gray-300 dark:hover:bg-green-900/10'
-          }`}
-        >
-          {t('Latest')}
-        </button>
-        <button
-          onClick={() => setActiveTab('top')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            activeTab === 'top'
-              ? 'bg-green-900 text-white dark:bg-green-800'
-              : 'text-gray-600 hover:bg-green-50 dark:text-gray-300 dark:hover:bg-green-900/10'
-          }`}
-        >
-          {t('Top')}
-        </button>
+      <div className="max-w-4xl mx-auto mb-12">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-green-100 dark:border-green-800/30 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/10 to-transparent rounded-full transform translate-x-10 -translate-y-10"></div>
+          <div className="flex space-x-4 relative">
+            <button
+              onClick={() => setActiveTab('latest')}
+              className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                activeTab === 'latest'
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-green-50 dark:text-gray-300 dark:hover:bg-green-900/10'
+              }`}
+            >
+              {t('Latest')}
+            </button>
+            <button
+              onClick={() => setActiveTab('top')}
+              className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                activeTab === 'top'
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-green-50 dark:text-gray-300 dark:hover:bg-green-900/10'
+              }`}
+            >
+              {t('Top')}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Articles Grid */}
@@ -136,6 +147,7 @@ function TheBeautifulGame() {
       {/* Newsletter */}
       <div className="mt-12">
         <Newsletter variant="the-beautiful-game" />
+      </div>
       </div>
     </div>
   );

@@ -99,36 +99,47 @@ function Archive() {
   const paginatedArticles = filteredArticles.slice((currentPage - 1) * articlesPerPage, currentPage * articlesPerPage);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-serif font-bold text-yellow-900 dark:text-yellow-400 mb-8">
-        {t('Archive')}
-      </h1>
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-amber-100 dark:from-gray-900 dark:via-yellow-900/20 dark:to-gray-900">
+            <div className="container mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="text-center mb-16 relative">
+          <div className="absolute inset-0 bg-yellow-500/5 dark:bg-yellow-400/10 rounded-full blur-3xl transform -translate-y-12"></div>
+          <h1 className="text-6xl font-serif font-bold bg-gradient-to-r from-yellow-600 via-yellow-700 to-yellow-800 dark:from-yellow-400 dark:via-yellow-300 dark:to-yellow-200 bg-clip-text text-transparent mb-6 relative">
+            {t('Archive')}
+          </h1>
+          <div className="w-24 h-1 bg-gradient-to-r from-yellow-500 to-yellow-700 mx-auto rounded-full"></div>
+        </div>
 
       {/* Year Filter */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        <button
-          onClick={() => setSelectedCategory('all')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            selectedCategory === 'all'
-              ? 'bg-yellow-900 text-white dark:bg-yellow-800'
-              : 'text-gray-600 hover:bg-yellow-50 dark:text-gray-300 dark:hover:bg-yellow-900/10'
-          }`}
-        >
-          {t('All Years')}
-        </button>
-        {years.map(year => (
-          <button
-            key={year}
-            onClick={() => setSelectedCategory(year.toString())}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              selectedCategory === year.toString()
-                ? 'bg-yellow-900 text-white dark:bg-yellow-800'
-                : 'text-gray-600 hover:bg-yellow-50 dark:text-gray-300 dark:hover:bg-yellow-900/10'
-            }`}
-          >
-            {year}
-          </button>
-        ))}
+      <div className="max-w-6xl mx-auto mb-12">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-yellow-100 dark:border-yellow-800/30 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-transparent rounded-full transform translate-x-10 -translate-y-10"></div>
+          <div className="flex flex-wrap gap-3 relative">
+            <button
+              onClick={() => setSelectedCategory('all')}
+              className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                selectedCategory === 'all'
+                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-yellow-50 dark:text-gray-300 dark:hover:bg-yellow-900/10'
+              }`}
+            >
+              {t('All Years')}
+            </button>
+            {years.map(year => (
+              <button
+                key={year}
+                onClick={() => setSelectedCategory(year.toString())}
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                  selectedCategory === year.toString()
+                    ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg'
+                    : 'text-gray-600 hover:bg-yellow-50 dark:text-gray-300 dark:hover:bg-yellow-900/10'
+                }`}
+              >
+                {year}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Articles List */}
@@ -216,6 +227,7 @@ function Archive() {
       {/* Newsletter Section */}
       <div className="mt-12">
         <Newsletter variant="archive" />
+      </div>
       </div>
     </div>
   );
