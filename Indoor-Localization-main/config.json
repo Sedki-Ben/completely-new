@@ -1,0 +1,29 @@
+{
+    "paths": {
+        "data_dir": "data",
+        "raw_data_dir": "data/raw",
+        "processed_data_dir": "data/processed",
+        "model_dir": "data/models",
+        "log_dir": "logs",
+        "visualization_dir": "visualizations"
+    },
+    "model": {
+        "num_subcarriers": 52,
+        "use_rssi": true,
+        "batch_size": 64,
+        "epochs": 200,
+        "patience": 20,
+        "learning_rate": 0.001
+    },
+    "data": {
+        "test_size": 0.2,
+        "random_state": 42,
+        "bandwidth": 20.0,
+        "num_antennas": 4
+    },
+    "hardware": {
+        "router_model": "TP-Link Archer A5",
+        "receiver_model": "ESP32-WROOM-32",
+        "num_antennas": 4
+    }
+} 
