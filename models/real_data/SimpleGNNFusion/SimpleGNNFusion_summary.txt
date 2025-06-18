@@ -1,0 +1,83 @@
+Model: "model"
+__________________________________________________________________________________________________
+ Layer (type)                Output Shape                 Param #   Connected to                  
+==================================================================================================
+ csi_input (InputLayer)      [(None, 104, 1)]             0         []                            
+                                                                                                  
+ dense (Dense)               (None, 104, 64)              128       ['csi_input[0][0]']           
+                                                                                                  
+ batch_normalization (Batch  (None, 104, 64)              256       ['dense[0][0]']               
+ Normalization)                                                                                   
+                                                                                                  
+ activation (Activation)     (None, 104, 64)              0         ['batch_normalization[0][0]'] 
+                                                                                                  
+ dropout (Dropout)           (None, 104, 64)              0         ['activation[0][0]']          
+                                                                                                  
+ dense_1 (Dense)             (None, 104, 128)             8320      ['dropout[0][0]']             
+                                                                                                  
+ batch_normalization_1 (Bat  (None, 104, 128)             512       ['dense_1[0][0]']             
+ chNormalization)                                                                                 
+                                                                                                  
+ activation_1 (Activation)   (None, 104, 128)             0         ['batch_normalization_1[0][0]'
+                                                                    ]                             
+                                                                                                  
+ rssi_input (InputLayer)     [(None, 1)]                  0         []                            
+                                                                                                  
+ dropout_1 (Dropout)         (None, 104, 128)             0         ['activation_1[0][0]']        
+                                                                                                  
+ dense_3 (Dense)             (None, 32)                   64        ['rssi_input[0][0]']          
+                                                                                                  
+ dense_2 (Dense)             (None, 104, 64)              8256      ['dropout_1[0][0]']           
+                                                                                                  
+ batch_normalization_3 (Bat  (None, 32)                   128       ['dense_3[0][0]']             
+ chNormalization)                                                                                 
+                                                                                                  
+ batch_normalization_2 (Bat  (None, 104, 64)              256       ['dense_2[0][0]']             
+ chNormalization)                                                                                 
+                                                                                                  
+ dropout_3 (Dropout)         (None, 32)                   0         ['batch_normalization_3[0][0]'
+                                                                    ]                             
+                                                                                                  
+ activation_2 (Activation)   (None, 104, 64)              0         ['batch_normalization_2[0][0]'
+                                                                    ]                             
+                                                                                                  
+ dense_4 (Dense)             (None, 16)                   528       ['dropout_3[0][0]']           
+                                                                                                  
+ dropout_2 (Dropout)         (None, 104, 64)              0         ['activation_2[0][0]']        
+                                                                                                  
+ batch_normalization_4 (Bat  (None, 16)                   64        ['dense_4[0][0]']             
+ chNormalization)                                                                                 
+                                                                                                  
+ global_average_pooling1d (  (None, 64)                   0         ['dropout_2[0][0]']           
+ GlobalAveragePooling1D)                                                                          
+                                                                                                  
+ dropout_4 (Dropout)         (None, 16)                   0         ['batch_normalization_4[0][0]'
+                                                                    ]                             
+                                                                                                  
+ concatenate (Concatenate)   (None, 80)                   0         ['global_average_pooling1d[0][
+                                                                    0]',                          
+                                                                     'dropout_4[0][0]']           
+                                                                                                  
+ dense_5 (Dense)             (None, 128)                  10368     ['concatenate[0][0]']         
+                                                                                                  
+ batch_normalization_5 (Bat  (None, 128)                  512       ['dense_5[0][0]']             
+ chNormalization)                                                                                 
+                                                                                                  
+ dropout_5 (Dropout)         (None, 128)                  0         ['batch_normalization_5[0][0]'
+                                                                    ]                             
+                                                                                                  
+ dense_6 (Dense)             (None, 64)                   8256      ['dropout_5[0][0]']           
+                                                                                                  
+ batch_normalization_6 (Bat  (None, 64)                   256       ['dense_6[0][0]']             
+ chNormalization)                                                                                 
+                                                                                                  
+ dropout_6 (Dropout)         (None, 64)                   0         ['batch_normalization_6[0][0]'
+                                                                    ]                             
+                                                                                                  
+ dense_7 (Dense)             (None, 2)                    130       ['dropout_6[0][0]']           
+                                                                                                  
+==================================================================================================
+Total params: 38034 (148.57 KB)
+Trainable params: 37042 (144.70 KB)
+Non-trainable params: 992 (3.88 KB)
+__________________________________________________________________________________________________

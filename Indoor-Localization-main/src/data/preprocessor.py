@@ -82,8 +82,14 @@ class DataPreprocessor:
         scaler_rssi = MinMaxScaler(feature_range=(0, 1))
         rssi_norm = scaler_rssi.fit_transform(rssi_values)
         
+        # Reshape CSI data to (samples, time_steps, features)
+        if len(csi_amplitude_norm.shape) == 2:
+            csi_amplitude_norm = csi_amplitude_norm.reshape(csi_amplitude_norm.shape[0], -1, 1)
+        if len(csi_phase_norm.shape) == 2:
+            csi_phase_norm = csi_phase_norm.reshape(csi_phase_norm.shape[0], -1, 1)
+        
         # Stack amplitude and phase as channels
-        csi_features = np.stack([csi_amplitude_norm, csi_phase_norm], axis=2)
+        csi_features = np.concatenate([csi_amplitude_norm, csi_phase_norm], axis=-1)
         
         # Store scalers
         self.scalers = {

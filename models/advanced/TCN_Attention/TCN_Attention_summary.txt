@@ -1,0 +1,109 @@
+Model: "model_2"
+__________________________________________________________________________________________________
+ Layer (type)                Output Shape                 Param #   Connected to                  
+==================================================================================================
+ csi_input (InputLayer)      [(None, 52, 1)]              0         []                            
+                                                                                                  
+ conv1d_27 (Conv1D)          (None, 52, 64)               256       ['csi_input[0][0]']           
+                                                                                                  
+ batch_normalization_35 (Ba  (None, 52, 64)               256       ['conv1d_27[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ conv1d_28 (Conv1D)          (None, 52, 64)               12352     ['batch_normalization_35[0][0]
+                                                                    ']                            
+                                                                                                  
+ batch_normalization_36 (Ba  (None, 52, 64)               256       ['conv1d_28[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ dropout_9 (Dropout)         (None, 52, 64)               0         ['batch_normalization_36[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_29 (Conv1D)          (None, 52, 64)               12352     ['dropout_9[0][0]']           
+                                                                                                  
+ batch_normalization_37 (Ba  (None, 52, 64)               256       ['conv1d_29[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ add_1 (Add)                 (None, 52, 64)               0         ['batch_normalization_35[0][0]
+                                                                    ',                            
+                                                                     'batch_normalization_37[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_30 (Conv1D)          (None, 52, 64)               12352     ['add_1[0][0]']               
+                                                                                                  
+ batch_normalization_38 (Ba  (None, 52, 64)               256       ['conv1d_30[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ dropout_10 (Dropout)        (None, 52, 64)               0         ['batch_normalization_38[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_31 (Conv1D)          (None, 52, 64)               12352     ['dropout_10[0][0]']          
+                                                                                                  
+ batch_normalization_39 (Ba  (None, 52, 64)               256       ['conv1d_31[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ add_2 (Add)                 (None, 52, 64)               0         ['add_1[0][0]',               
+                                                                     'batch_normalization_39[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_32 (Conv1D)          (None, 52, 64)               12352     ['add_2[0][0]']               
+                                                                                                  
+ batch_normalization_40 (Ba  (None, 52, 64)               256       ['conv1d_32[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ dropout_11 (Dropout)        (None, 52, 64)               0         ['batch_normalization_40[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_33 (Conv1D)          (None, 52, 64)               12352     ['dropout_11[0][0]']          
+                                                                                                  
+ batch_normalization_41 (Ba  (None, 52, 64)               256       ['conv1d_33[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ add_3 (Add)                 (None, 52, 64)               0         ['add_2[0][0]',               
+                                                                     'batch_normalization_41[0][0]
+                                                                    ']                            
+                                                                                                  
+ rssi_input (InputLayer)     [(None, 1)]                  0         []                            
+                                                                                                  
+ dense_16 (Dense)            (None, 52, 1)                65        ['add_3[0][0]']               
+                                                                                                  
+ dense_17 (Dense)            (None, 16)                   32        ['rssi_input[0][0]']          
+                                                                                                  
+ multiply (Multiply)         (None, 52, 64)               0         ['add_3[0][0]',               
+                                                                     'dense_16[0][0]']            
+                                                                                                  
+ batch_normalization_42 (Ba  (None, 16)                   64        ['dense_17[0][0]']            
+ tchNormalization)                                                                                
+                                                                                                  
+ global_average_pooling1d_2  (None, 64)                   0         ['multiply[0][0]']            
+  (GlobalAveragePooling1D)                                                                        
+                                                                                                  
+ dropout_12 (Dropout)        (None, 16)                   0         ['batch_normalization_42[0][0]
+                                                                    ']                            
+                                                                                                  
+ concatenate_6 (Concatenate  (None, 80)                   0         ['global_average_pooling1d_2[0
+ )                                                                  ][0]',                        
+                                                                     'dropout_12[0][0]']          
+                                                                                                  
+ dense_18 (Dense)            (None, 96)                   7776      ['concatenate_6[0][0]']       
+                                                                                                  
+ batch_normalization_43 (Ba  (None, 96)                   384       ['dense_18[0][0]']            
+ tchNormalization)                                                                                
+                                                                                                  
+ dropout_13 (Dropout)        (None, 96)                   0         ['batch_normalization_43[0][0]
+                                                                    ']                            
+                                                                                                  
+ dense_19 (Dense)            (None, 48)                   4656      ['dropout_13[0][0]']          
+                                                                                                  
+ batch_normalization_44 (Ba  (None, 48)                   192       ['dense_19[0][0]']            
+ tchNormalization)                                                                                
+                                                                                                  
+ dropout_14 (Dropout)        (None, 48)                   0         ['batch_normalization_44[0][0]
+                                                                    ']                            
+                                                                                                  
+ dense_20 (Dense)            (None, 2)                    98        ['dropout_14[0][0]']          
+                                                                                                  
+==================================================================================================
+Total params: 89427 (349.32 KB)
+Trainable params: 88211 (344.57 KB)
+Non-trainable params: 1216 (4.75 KB)
+__________________________________________________________________________________________________

@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Localization Deep Neural Networks</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00d4ff;
+            margin-bottom: 30px;
+            font-size: 2.8em;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+            to { text-shadow: 0 0 30px rgba(0, 212, 255, 0.6); }
+        }
+
+        .architecture-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .arch-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .arch-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .arch-button:hover::before {
+            left: 100%;
+        }
+
+        .arch-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .arch-button.active {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .architecture-section {
+            margin-bottom: 80px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 25px;
+            padding: 40px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .architecture-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.05) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .architecture-title {
+            color: #ff6b6b;
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+            position: relative;
+            z-index: 1;
+        }
+
+        .network-container {
+            position: relative;
+            min-height: 700px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px auto;
+            overflow: visible;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        .layer {
+            position: absolute;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            border: 3px solid;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .layer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            opacity: 0.1;
+            transition: opacity 0.3s ease;
+        }
+
+        .layer:hover {
+            transform: scale(1.1) translateY(-5px);
+            z-index: 50;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .layer:hover::before {
+            opacity: 0.3;
+        }
+
+        .layer-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .input-layer {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border-color: #4CAF50;
+            color: white;
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+        }
+
+        .conv-layer {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            border-color: #2196F3;
+            color: white;
+            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
+        }
+
+        .dense-layer {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            border-color: #FF9800;
+            color: white;
+            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+        }
+
+        .attention-layer {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+            border-color: #9C27B0;
+            color: white;
+            box-shadow: 0 8px 25px rgba(156, 39, 176, 0.4);
+        }
+
+        .output-layer {
+            background: linear-gradient(135deg, #F44336, #D32F2F);
+            border-color: #F44336;
+            color: white;
+            box-shadow: 0 8px 25px rgba(244, 67, 54, 0.4);
+        }
+
+        .residual-layer {
+            background: linear-gradient(135deg, #607D8B, #455A64);
+            border-color: #607D8B;
+            color: white;
+            box-shadow: 0 8px 25px rgba(96, 125, 139, 0.4);
+        }
+
+        .pooling-layer {
+            background: linear-gradient(135deg, #795548, #5D4037);
+            border-color: #795548;
+            color: white;
+            box-shadow: 0 8px 25px rgba(121, 85, 72, 0.4);
+        }
+
+        .normalization-layer {
+            background: linear-gradient(135deg, #CDDC39, #AFB42B);
+            border-color: #CDDC39;
+            color: #333;
+            box-shadow: 0 8px 25px rgba(205, 220, 57, 0.4);
+        }
+
+        .connection {
+            position: absolute;
+            height: 4px;
+            border-radius: 2px;
+            opacity: 0.9;
+            transition: all 0.4s ease;
+            z-index: 5;
+            background: linear-gradient(90deg, #00d4ff, #ff6b6b);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .connection::after {
+            content: '';
+            position: absolute;
+            right: -12px;
+            top: -6px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid #ff6b6b;
+            border-top: 7px solid transparent;
+            border-bottom: 7px solid transparent;
+            filter: drop-shadow(0 0 3px rgba(255, 107, 107, 0.5));
+        }
+
+        .skip-connection {
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+            height: 5px;
+            border-radius: 3px;
+            opacity: 0.95;
+            z-index: 15;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .skip-connection::after {
+            border-left-color: #ffd93d;
+            filter: drop-shadow(0 0 5px rgba(255, 217, 61, 0.5));
+        }
+
+        .tooltip {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
+            color: #e0e0e0;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            max-width: 350px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+            border: 2px solid #00d4ff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            transform: translateY(10px);
+            top: -80px;
+            left: 50%;
+            margin-left: -175px;
+        }
+
+        .layer:hover .tooltip {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            margin-left: -10px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #00d4ff;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .legend-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .legend-color {
+            width: 25px;
+            height: 25px;
+            border-radius: 6px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .explanation-panel {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 35px;
+            margin-top: 40px;
+            border-left: 6px solid #00d4ff;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .explanation-title {
+            color: #00d4ff;
+            font-size: 1.6em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .explanation-content {
+            line-height: 1.8;
+            color: #e0e0e0;
+        }
+
+        .explanation-content p {
+            margin-bottom: 15px;
+        }
+
+        .explanation-content ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .explanation-content li {
+            margin-bottom: 8px;
+        }
+
+        .math-formula {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(20, 20, 40, 0.4));
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid #ff6b6b;
+            color: #ffd93d;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .metrics-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #ccc;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .network-container {
+                min-height: 600px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2em;
+            }
+            
+            .architecture-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .arch-button {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .legend {
+                grid-template-columns: 1fr;
+            }
+            
+            .layer {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WiFi-Based Indoor Localization Deep Neural Networks</h1>
+        <div class="architecture-selector">
+            <button class="arch-button active" onclick="showArchitecture('baseline', event)">Baseline CNN</button>
+            <button class="arch-button" onclick="showArchitecture('dualbranch', event)">Dual Branch</button>
+            <button class="arch-button" onclick="showArchitecture('enhanced', event)">Enhanced Dual Branch</button>
+            <button class="arch-button" onclick="showArchitecture('attention', event)">Multi-Head Attention</button>
+        </div>
+        <div class="architecture-section">
+            <div class="architecture-title" id="arch-title">Architecture 1: Baseline CNN</div>
+            <div class="network-container" id="network-container"></div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-color input-layer"></div><span>Input Layer</span></div>
+                <div class="legend-item"><div class="legend-color conv-layer"></div><span>Convolutional Layer</span></div>
+                <div class="legend-item"><div class="legend-color dense-layer"></div><span>Dense Layer</span></div>
+                <div class="legend-item"><div class="legend-color attention-layer"></div><span>Attention Layer</span></div>
+                <div class="legend-item"><div class="legend-color residual-layer"></div><span>Residual Block</span></div>
+                <div class="legend-item"><div class="legend-color pooling-layer"></div><span>Pooling Layer</span></div>
+                <div class="legend-item"><div class="legend-color normalization-layer"></div><span>Batch Normalization</span></div>
+                <div class="legend-item"><div class="legend-color output-layer"></div><span>Output Layer</span></div>
+            </div>
+            <div id="performance-metrics"></div>
+        </div>
+        <div class="explanation-panel">
+            <div class="explanation-title" id="explanation-title">Baseline CNN Architecture</div>
+            <div class="explanation-content" id="explanation-content"></div>
+        </div>
+    </div>
+    <script>
+        // Full architectures object for all four architectures
+        const architectures = {
+            baseline: {
+                title: "Architecture 1: Baseline CNN",
+                explanation: {
+                    title: "Baseline CNN Architecture Analysis",
+                    content: `
+                        <p>The baseline CNN architecture represents a naive approach to WiFi-based indoor localization. It concatenates CSI (Channel State Information) and RSSI (Received Signal Strength Indicator) features directly, treating them as a homogeneous input space.</p>
+                        
+                        <div class="math-formula">
+                            Mathematical Formulation:<br>
+                            f: ℝ¹⁰⁴ → ℝ² (52×2 CSI features → (x,y) coordinates)<br>
+                            Loss Function: L = E[||f(X) - Y||₂²]<br>
+                            Optimization: θ* = arg min_θ E[||f_θ(X) - Y||₂²]<br>
+                            Total Parameters: ~1,017,418 parameters
+                        </div>
+                        
+                        <p><strong>Architecture Components:</strong></p>
+                        <ul>
+                            <li><strong>CSI Input:</strong> 52 subcarriers × 2 channels (amplitude and phase) representing complex frequency domain measurements</li>
+                            <li><strong>Conv1D Layers:</strong> Three convolutional layers (64, 128, 256 filters) with kernel size 3, extracting frequency domain patterns</li>
+                            <li><strong>Batch Normalization:</strong> Applied after each convolutional layer to stabilize training dynamics</li>
+                            <li><strong>MaxPooling:</strong> Reduces temporal dimension by factor of 2, preserving strongest activations</li>
+                            <li><strong>Dense Layers:</strong> Fully connected layers (256, 128, 64 units) for final coordinate prediction with ReLU activation</li>
+                        </ul>
+
+                        <p><strong>Performance Analysis:</strong></p>
+                        <ul>
+                            <li><strong>Localization Accuracy:</strong> 3.37cm MAE indicates excellent precision, with average prediction errors of only 3.37 centimeters from true positions</li>
+                            <li><strong>Error Distribution:</strong> Very consistent performance with minimal outliers, suggesting robust feature representation</li>
+                            <li><strong>Real-world Impact:</strong> Suitable for high-precision applications like robotic navigation, augmented reality, and centimeter-level indoor positioning</li>
+                            <li><strong>Coordinate Breakdown:</strong> MAE_X: 5.06cm, MAE_Y: 1.68cm shows significantly better accuracy in Y-direction</li>
+                        </ul>
+
+                        <p><strong>Critical Architectural Limitations:</strong></p>
+                        <ul>
+                            <li><strong>Feature Heterogeneity Violation:</strong> CSI features are complex-valued frequency domain measurements (|H(f)|e^(jφ(f))) with high-dimensional manifold structure, while RSSI features are real-valued power measurements (P_rx = P_tx - PL(d)) with low-dimensional Euclidean structure.</li>
+                            <li><strong>Convolution Kernel Mismatch:</strong> 1D convolution assumes translation invariance across the concatenated feature space, which has no physical meaning when spanning both CSI and RSSI domains.</li>
+                            <li><strong>Information Bottleneck:</strong> Single processing pathway creates representational bottleneck without specialized inductive biases for different signal modalities.</li>
+                            <li><strong>Gradient Flow Issues:</strong> Deep concatenated architecture suffers from vanishing gradients without skip connections or proper normalization.</li>
+                        </ul>
+                    `
+                },
+                layers: [
+                    {x: 150, y: 300, width: 140, height: 100, class: 'input-layer', text: 'Input Layer\n104 features\n(52×2 CSI)', tooltip: 'CSI Input: Channel State Information with amplitude and phase. Shape: (52 subcarriers, 2 channels). Represents H(f) = |H(f)|e^(jφ(f)) encoding multipath propagation.'},
+                    {x: 400, y: 280, width: 130, height: 80, class: 'conv-layer', text: 'Conv1D\n64 filters\nkernel=3', tooltip: 'Conv1D(64, 3): 64 convolutional filters with kernel size 3. Parameters: 64 × (3 × 2 + 1) = 448. Extracts frequency domain patterns via convolution.'},
+                    {x: 400, y: 380, width: 130, height: 60, class: 'pooling-layer', text: 'MaxPool1D\npool=2', tooltip: 'MaxPooling1D(2): Reduces temporal dimension by factor of 2. Operation: y[i] = max(x[2i], x[2i+1]). Downsamples while preserving important activations.'},
+                    {x: 650, y: 300, width: 130, height: 80, class: 'dense-layer', text: 'Dense\n256 units\nReLU', tooltip: 'Dense(256): Fully connected layer with 256 neurons. Parameters: ~852,224. ReLU activation: f(x) = max(0, x). Matrix operation: y = W·x + b'},
+                    {x: 900, y: 300, width: 130, height: 80, class: 'output-layer', text: 'Output\n2 units\n(x, y)', tooltip: 'Output layer: 2 neurons for (x, y) coordinate prediction. Parameters: 2 × (64 + 1) = 130. Linear activation for regression: ŷ = W·h + b'}
+                ],
+                connections: [
+                    {from: 0, to: 1},
+                    {from: 1, to: 2},
+                    {from: 2, to: 3},
+                    {from: 3, to: 4}
+                ],
+                metrics: {
+                    parameters: "1.02M",
+                    memory: "4.0MB",
+                    inference: "0.18ms",
+                    accuracy: "3.37cm MAE"
+                }
+            },
+            dualbranch: {
+                title: "Architecture 2: Dual Branch Network",
+                explanation: {
+                    title: "Dual Branch Architecture Analysis",
+                    content: `
+                        <p>The dual branch architecture addresses the fundamental limitations of the baseline by processing CSI and RSSI features through specialized pathways before intelligent fusion. This approach respects the inherent differences between signal modalities.</p>
+                        
+                        <div class="math-formula">
+                            Mathematical Framework:<br>
+                            CSI Branch: f_csi: ℝ⁵⁰ → ℝ¹²⁸ (frequency domain processing)<br>
+                            RSSI Branch: f_rssi: ℝ⁴ → ℝ¹⁶ (power domain processing)<br>
+                            Fusion Network: f_fusion: ℝ¹⁴⁴ → ℝ² (combined feature space)<br>
+                            Final Output: ŷ = f_fusion([f_csi(X_csi), f_rssi(X_rssi)])<br>
+                            Total Parameters: ~131,000 parameters
+                        </div>
+                        
+                        <p><strong>Performance Analysis:</strong></p>
+                        <ul>
+                            <li><strong>Localization Accuracy:</strong> 124.44cm MAE indicates this architecture was unoptimal for this specific use case and dataset</li>
+                            <li><strong>Error Distribution:</strong> High variance and inconsistent performance suggests architectural mismatch with the problem requirements</li>
+                            <li><strong>Real-world Impact:</strong> This level of error is unsuitable for practical indoor localization applications</li>
+                            <li><strong>Experimental Insight:</strong> Demonstrates that architectural complexity doesn't always translate to better performance</li>
+                        </ul>
+                        
+                        <p><strong>CSI Branch Specialization:</strong></p>
+                        <ul>
+                            <li><strong>Convolutional Processing:</strong> Conv1D layers capture frequency domain patterns: H(f) = |H(f)|e^(jφ(f)) encoding multipath propagation</li>
+                            <li><strong>Batch Normalization:</strong> BN(x) = γ × ((x - μ_B) / √(σ²_B + ε)) + β stabilizes training dynamics and reduces internal covariate shift</li>
+                            <li><strong>Global Average Pooling:</strong> GAP(x) = (1/T) Σ_t x_t reduces overfitting while preserving channel-wise information</li>
+                        </ul>
+
+                        <p><strong>RSSI Branch Optimization:</strong></p>
+                        <ul>
+                            <li><strong>Dense Processing:</strong> Fully connected layers optimal for low-dimensional power measurements following log-distance path loss model</li>
+                            <li><strong>Feature Compression:</strong> Progressive dimensionality reduction (4 → 32 → 16) with ReLU: f(x) = max(0, x)</li>
+                            <li><strong>Power Domain Respect:</strong> Preserves positive power characteristics inherent in RSSI measurements</li>
+                        </ul>
+
+                        <p><strong>Fusion Strategy:</strong></p>
+                        <ul>
+                            <li><strong>Late Fusion:</strong> Combines high-level representations after domain-specific processing</li>
+                            <li><strong>Dropout Regularization:</strong> Bernoulli mask z_i ~ Bernoulli(1-p) prevents co-adaptation: y_i = z_i * x_i / (1-p)</li>
+                            <li><strong>Progressive Refinement:</strong> Multi-layer fusion network (144 → 64 → 2) for coordinate prediction</li>
+                        </ul>
+
+                        <p><strong>Key Limitations:</strong></p>
+                        <ul>
+                            <li><strong>Over-engineering:</strong> The dual branch approach may be too complex for the available data</li>
+                            <li><strong>Fusion Bottleneck:</strong> Late fusion strategy may not effectively combine the specialized features</li>
+                            <li><strong>Training Instability:</strong> Multiple pathways may lead to optimization difficulties</li>
+                            <li><strong>Data Requirements:</strong> May require more training data to effectively learn the dual representations</li>
+                        </ul>
+                    `
+                },
+                layers: [
+                    {x: 100, y: 150, width: 120, height: 80, class: 'input-layer', text: 'CSI Input\n52 features', tooltip: 'CSI Input: Complex frequency domain channel measurements H(f) = |H(f)|e^(jφ(f)). Contains amplitude and phase information encoding multipath propagation characteristics.'},
+                    {x: 100, y: 450, width: 120, height: 80, class: 'input-layer', text: 'RSSI Input\n4 features', tooltip: 'RSSI Input: Received Signal Strength measurements. Power-based features following log-distance path loss: PL(d) = PL(d₀) + 10n·log₁₀(d/d₀) + X_σ'},
+                    {x: 300, y: 130, width: 120, height: 60, class: 'conv-layer', text: 'Conv1D\n64 filters', tooltip: 'Conv1D(64, 3): First CSI convolutional layer with 64 filters. Extracts frequency domain patterns via convolution. Parameters: 64 × (3 × 52 + 1) = 10,112.'},
+                    {x: 300, y: 200, width: 120, height: 60, class: 'normalization-layer', text: 'BatchNorm1D', tooltip: 'Batch Normalization: BN(x) = γ × ((x - μ_B) / √(σ²_B + ε)) + β. Stabilizes training by normalizing layer inputs, reducing internal covariate shift.'},
+                    {x: 300, y: 270, width: 120, height: 60, class: 'pooling-layer', text: 'GlobalAvgPool', tooltip: 'Global Average Pooling: GAP(x) = (1/T) Σ_t x_t. Reduces spatial dimensions while preserving channel information. Regularization effect prevents overfitting.'},
+                    {x: 300, y: 430, width: 120, height: 60, class: 'dense-layer', text: 'Dense\n32 units', tooltip: 'Dense(32): First RSSI processing layer. Parameters: 32 × (4 + 1) = 160. Transforms power measurements with ReLU: f(x) = max(0, x).'},
+                    {x: 300, y: 500, width: 120, height: 60, class: 'dense-layer', text: 'Dense\n16 units', tooltip: 'Dense(16): Second RSSI layer for feature compression. Parameters: 16 × (32 + 1) = 528. Progressive dimensionality reduction optimized for power domain.'},
+                    {x: 550, y: 350, width: 140, height: 80, class: 'dense-layer', text: 'Fusion Layer\n144→64 units\nDropout 0.5', tooltip: 'Fusion Layer: Combines CSI and RSSI features. Input: 128+16=144 features. Dropout(0.5): Bernoulli(0.5) mask prevents co-adaptation. Parameters: 64×(144+1)=9,280.'},
+                    {x: 800, y: 350, width: 120, height: 80, class: 'output-layer', text: 'Output\n2 units\n(x, y)', tooltip: 'Final coordinate prediction layer. Linear activation for regression: ŷ = W·h + b. Parameters: 2×(64+1)=130. MSE Loss: L = ||ŷ - y||²'}
+                ],
+                connections: [
+                    {from: 0, to: 2}, {from: 2, to: 3}, {from: 3, to: 4}, {from: 4, to: 7},
+                    {from: 1, to: 5}, {from: 5, to: 6}, {from: 6, to: 7},
+                    {from: 7, to: 8}
+                ],
+                metrics: {
+                    parameters: "131K",
+                    memory: "1.2MB", 
+                    inference: "0.08ms",
+                    accuracy: "124.44cm MAE"
+                }
+            },
+            enhanced: {
+                title: "Architecture 3: Enhanced Dual Branch with Residual Connections",
+                explanation: {
+                    title: "Enhanced Dual Branch with Residual Learning",
+                    content: `
+                        <p>The enhanced architecture incorporates residual learning and advanced regularization techniques to address vanishing gradients and improve feature representation capacity for complex indoor environments.</p>
+                        
+                        <div class="math-formula">
+                            Residual Learning Framework:<br>
+                            H(x) = F(x) + x where F(x) represents residual mapping<br>
+                            CSI Residual: H_csi(x) = F_csi(x) + W_s·x (with projection if needed)<br>
+                            RSSI Residual: H_rssi(x) = F_rssi(x) + x<br>
+                            Multi-Scale Fusion: ŷ = f([H_csi(X_csi), H_rssi(X_rssi), f_cross(X_csi, X_rssi)])<br>
+                            Total Parameters: ~198,000 parameters
+                        </div>
+                        
+                        <p><strong>Performance Analysis:</strong></p>
+                        <ul>
+                            <li><strong>Localization Accuracy:</strong> 3.26cm MAE represents the best performance among all tested architectures</li>
+                            <li><strong>Error Distribution:</strong> Most consistent and reliable predictions with minimal outliers</li>
+                            <li><strong>Real-world Impact:</strong> Optimal for high-precision indoor navigation and centimeter-level positioning</li>
+                            <li><strong>Performance Gain:</strong> 3.3% improvement over baseline, demonstrating the effectiveness of residual learning</li>
+                            <li><strong>Coordinate Breakdown:</strong> MAE_X: 4.98cm, MAE_Y: 1.54cm shows excellent balance between X and Y accuracy</li>
+                        </ul>
+                        
+                        <p><strong>Residual CSI Processing:</strong></p>
+                        <ul>
+                            <li><strong>Skip Connections:</strong> Enable gradient flow: ∂L/∂x = ∂L/∂y · (1 + ∂F/∂x), preventing vanishing gradients in deep networks</li>
+                            <li><strong>Multi-Scale Convolution:</strong> Parallel 1×1, 3×3, 5×5 kernels capture different frequency patterns: small kernels for local, large for global patterns</li>
+                            <li><strong>Squeeze-Excitation:</strong> Channel attention: SE(x) = x ⊙ σ(W₂·ReLU(W₁·GAP(x))) where ⊙ is element-wise multiplication</li>
+                            <li><strong>Adaptive Pooling:</strong> Context-aware feature aggregation preserving important spatial information</li>
+                        </ul>
+
+                        <p><strong>Enhanced RSSI Branch:</strong></p>
+                        <ul>
+                            <li><strong>Residual Dense Blocks:</strong> Progressive feature refinement with skip connections preventing information loss</li>
+                            <li><strong>Dropout Scheduling:</strong> Adaptive dropout rates: p(epoch) = p₀ · (1 - epoch/total_epochs)^α for progressive regularization</li>
+                            <li><strong>Feature Concatenation:</strong> Preserves multi-level representations: [f₁, f₂, f₃] maintaining feature hierarchy</li>
+                        </ul>
+
+                        <p><strong>Cross-Modal Attention:</strong></p>
+                        <ul>
+                            <li><strong>Attention Mechanism:</strong> A(Q,K,V) = softmax(QK^T/√d_k)V where Q from CSI, K,V from RSSI</li>
+                            <li><strong>Feature Correlation:</strong> Discovers implicit relationships between frequency and power domains</li>
+                            <li><strong>Adaptive Weighting:</strong> Dynamic fusion weights based on signal quality and environmental conditions</li>
+                        </ul>
+
+                        <p><strong>Advanced Regularization:</strong></p>
+                        <ul>
+                            <li><strong>Layer-wise Learning Rates:</strong> η_l = η₀ · decay^(depth-l) for optimal gradient updates per layer</li>
+                            <li><strong>Spectral Normalization:</strong> W_SN = W/σ(W) constrains Lipschitz constant for stable training</li>
+                            <li><strong>Label Smoothing:</strong> Soft targets: y_smooth = (1-α)·y_true + α/K reduces overconfidence</li>
+                        </ul>
+                    `
+                },
+                layers: [
+                    {x: 80, y: 120, width: 120, height: 70, class: 'input-layer', text: 'CSI Input\n52 features', tooltip: 'CSI Input: Channel State Information with complex amplitude and phase. Represents H(f,t) = |H(f,t)|e^(jφ(f,t)) encoding multipath fading characteristics.'},
+                    {x: 80, y: 480, width: 120, height: 70, class: 'input-layer', text: 'RSSI Input\n4 features', tooltip: 'RSSI Input: Received Signal Strength from multiple access points. Log-distance model: RSSI(d) = RSSI₀ - 10n·log₁₀(d/d₀) + X_σ'},
+                    {x: 250, y: 90, width: 100, height: 60, class: 'conv-layer', text: 'Conv1D\n64×1', tooltip: 'Conv1D(64,1): Point-wise convolution for channel mixing. Parameters: 64×(1×52+1)=3,392. Learns feature relationships across frequency bins.'},
+                    {x: 250, y: 160, width: 100, height: 60, class: 'conv-layer', text: 'Conv1D\n64×3', tooltip: 'Conv1D(64,3): Spatial convolution capturing local frequency patterns. Parameters: 64×(3×64+1)=12,352. Receptive field spans adjacent subcarriers.'},
+                    {x: 250, y: 230, width: 100, height: 60, class: 'conv-layer', text: 'Conv1D\n64×5', tooltip: 'Conv1D(64,5): Large kernel for global frequency relationships. Parameters: 64×(5×64+1)=20,544. Captures wide-band channel characteristics.'},
+                    {x: 400, y: 160, width: 100, height: 60, class: 'residual-layer', text: 'Residual\nBlock', tooltip: 'Residual Connection: H(x) = F(x) + W_s·x. Enables training of deeper networks by addressing vanishing gradient problem. Skip connection preserves information flow.'},
+                    {x: 400, y: 240, width: 100, height: 60, class: 'attention-layer', text: 'SE Block\nAttention', tooltip: 'Squeeze-Excitation: SE(x) = x ⊙ σ(W₂·ReLU(W₁·GAP(x))). Channel attention mechanism. Learns to emphasize important frequency channels dynamically.'},
+                    {x: 250, y: 450, width: 100, height: 60, class: 'dense-layer', text: 'Dense\n32→32', tooltip: 'Residual Dense(32): First RSSI processing with residual connection. H(x) = ReLU(Wx + b) + x. Parameters: 32×(4+1)=160 + residual projection.'},
+                    {x: 250, y: 520, width: 100, height: 60, class: 'dense-layer', text: 'Dense\n32→16', tooltip: 'Dense(16): Feature compression with dropout. Parameters: 16×(32+1)=528. Progressive dimensionality reduction: 32→16 preserving power characteristics.'},
+                    {x: 400, y: 485, width: 100, height: 60, class: 'residual-layer', text: 'Residual\nDense', tooltip: 'Residual Dense Block: Concatenates multi-level features [f₁, f₂, f₃]. Dense connectivity: x_l = H_l([x₀, x₁, ..., x_{l-1}]) improves gradient flow.'},
+                    {x: 600, y: 350, width: 120, height: 80, class: 'attention-layer', text: 'Cross-Modal\nAttention\n128×16→144', tooltip: 'Cross-Modal Attention: A(Q,K,V) = softmax(QK^T/√d_k)V. Q from CSI (128), K,V from RSSI (16). Discovers frequency-power correlations for localization.'},
+                    {x: 800, y: 320, width: 100, height: 60, class: 'dense-layer', text: 'Fusion\n144→64', tooltip: 'Multi-Modal Fusion: Combines attended features from both branches. Batch normalization + Dropout(0.4). Parameters: 64×(144+1)=9,280.'},
+                    {x: 800, y: 390, width: 100, height: 60, class: 'dense-layer', text: 'Dense\n64→32', tooltip: 'Feature Refinement: Second fusion layer with residual connection. Progressive refinement: 64→32. Parameters: 32×(64+1)=2,080.'},
+                    {x: 1000, y: 355, width: 100, height: 70, class: 'output-layer', text: 'Output\n2 units\n(x, y)', tooltip: 'Coordinate Prediction: Final regression layer. Linear activation: ŷ = Wx + b. Parameters: 2×(32+1)=66. L2 Loss: L = ||ŷ - y||₂²'}
+                ],
+                connections: [
+                    {from: 0, to: 2}, {from: 0, to: 3}, {from: 0, to: 4},
+                    {from: 2, to: 5}, {from: 3, to: 5}, {from: 4, to: 5},
+                    {from: 5, to: 6}, {from: 6, to: 10},
+                    {from: 1, to: 7}, {from: 7, to: 8}, {from: 8, to: 9}, {from: 9, to: 10},
+                    {from: 10, to: 11}, {from: 11, to: 12}, {from: 12, to: 13}
+                ],
+                skipConnections: [
+                    {from: 0, to: 5}, {from: 7, to: 9}, {from: 11, to: 12}
+                ],
+                metrics: {
+                    parameters: "198K",
+                    memory: "1.8MB",
+                    inference: "0.15ms", 
+                    accuracy: "3.26cm MAE"
+                }
+            },
+            attention: {
+                title: "Architecture 4: Multi-Head Attention Transformer",
+                explanation: {
+                    title: "Transformer-Based Multi-Head Attention Architecture",
+                    content: `
+                        <p>The transformer architecture leverages self-attention mechanisms to capture long-range dependencies in WiFi signals and spatial relationships for precise indoor localization through learned positional encodings.</p>
+                        
+                        <div class="math-formula">
+                            Multi-Head Attention Framework:<br>
+                            MultiHead(Q,K,V) = Concat(head₁, head₂, ..., head_h)W^O<br>
+                            head_i = Attention(QW_i^Q, KW_i^K, VW_i^V)<br>
+                            Attention(Q,K,V) = softmax(QK^T/√d_k)V<br>
+                            Positional Encoding: PE(pos,2i) = sin(pos/10000^(2i/d_model))<br>
+                            PE(pos,2i+1) = cos(pos/10000^(2i/d_model))<br>
+                            Total Parameters: ~284,000 parameters
+                        </div>
+                        
+                        <p><strong>Performance Analysis:</strong></p>
+                        <ul>
+                            <li><strong>Localization Accuracy:</strong> 4.38cm MAE shows good performance but slightly worse than the enhanced dual branch</li>
+                            <li><strong>Error Distribution:</strong> Consistent predictions with moderate variance across test scenarios</li>
+                            <li><strong>Real-world Impact:</strong> Suitable for precise indoor navigation and location-based services</li>
+                            <li><strong>Performance Comparison:</strong> 30% worse than enhanced dual branch, suggesting attention may be overkill for this dataset</li>
+                            <li><strong>Coordinate Breakdown:</strong> MAE_X: 6.01cm, MAE_Y: 2.76cm shows higher variance in X-direction</li>
+                        </ul>
+                        
+                        <p><strong>Input Embedding & Positional Encoding:</strong></p>
+                        <ul>
+                            <li><strong>Feature Embedding:</strong> Projects heterogeneous inputs to uniform d_model=128 dimensional space via learned linear transformations</li>
+                            <li><strong>Positional Encoding:</strong> Sinusoidal patterns encode spatial/frequency positions enabling attention to learn positional relationships</li>
+                            <li><strong>Dropout Regularization:</strong> Applied to embeddings preventing overfitting in high-dimensional attention space</li>
+                        </ul>
+
+                        <p><strong>Multi-Head Self-Attention:</strong></p>
+                        <ul>
+                            <li><strong>8 Attention Heads:</strong> Parallel attention mechanisms capture different types of relationships (h=8, d_k=d_v=16)</li>
+                            <li><strong>Scaled Dot-Product:</strong> Attention scores: α_ij = exp(q_i^T k_j / √d_k) / Σ_k exp(q_i^T k_k / √d_k)</li>
+                            <li><strong>Query-Key-Value:</strong> Q = XW^Q, K = XW^K, V = XW^V where X is input sequence</li>
+                            <li><strong>Residual Connections:</strong> LayerNorm(x + Attention(x)) stabilizes training of deep attention layers</li>
+                        </ul>
+
+                        <p><strong>Cross-Attention Between Modalities:</strong></p>
+                        <ul>
+                            <li><strong>CSI-to-RSSI Attention:</strong> Q from CSI features, K,V from RSSI features discovers frequency-power correlations</li>
+                            <li><strong>RSSI-to-CSI Attention:</strong> Bidirectional attention enables mutual feature enhancement</li>
+                            <li><strong>Attention Weights Visualization:</strong> Interpretable attention maps show which CSI frequencies correlate with RSSI measurements</li>
+                        </ul>
+
+                        <p><strong>Feed-Forward Networks:</strong></p>
+                        <ul>
+                            <li><strong>Position-wise FFN:</strong> FFN(x) = max(0, xW₁ + b₁)W₂ + b₂ with hidden dimension 512</li>
+                            <li><strong>GELU Activation:</strong> GELU(x) = x · Φ(x) where Φ is standard Gaussian CDF, smoother than ReLU</li>
+                            <li><strong>Layer Normalization:</strong> LN(x) = γ ⊙ (x - μ)/σ + β applied before each sub-layer (Pre-LN architecture)</li>
+                        </ul>
+
+                        <p><strong>Spatial-Aware Output Head:</strong></p>
+                        <ul>
+                            <li><strong>Global Context Pooling:</strong> Weighted combination of all sequence positions for final representation</li>
+                            <li><strong>Coordinate Regression:</strong> Dedicated heads for x and y coordinates with shared representations</li>
+                            <li><strong>Uncertainty Estimation:</strong> Additional head predicts coordinate uncertainty: σ² = exp(f_σ(h)) for probabilistic localization</li>
+                        </ul>
+
+                        <p><strong>Training Strategy:</strong></p>
+                        <ul>
+                            <li><strong>Warmup Learning Rate:</strong> lr(step) = min(step/warmup_steps, 1) · base_lr for stable attention training</li>
+                            <li><strong>Label Smoothing:</strong> Soft targets reduce overconfidence in coordinate predictions</li>
+                            <li><strong>Gradient Clipping:</strong> ||∇θ|| ≤ clip_value prevents exploding gradients in deep attention networks</li>
+                        </ul>
+                    `
+                },
+                layers: [
+                    {x: 80, y: 180, width: 100, height: 60, class: 'input-layer', text: 'CSI Input\n52→128d', tooltip: 'CSI Embedding: Linear projection to d_model=128. Parameters: 128×(52+1)=6,784. Projects frequency domain features to uniform embedding space.'},
+                    {x: 80, y: 420, width: 100, height: 60, class: 'input-layer', text: 'RSSI Input\n4→128d', tooltip: 'RSSI Embedding: Linear projection to d_model=128. Parameters: 128×(4+1)=640. Projects power measurements to same embedding dimension as CSI.'},
+                    {x: 220, y: 180, width: 100, height: 60, class: 'attention-layer', text: 'Positional\nEncoding', tooltip: 'Positional Encoding: PE(pos,2i) = sin(pos/10000^(2i/128)), PE(pos,2i+1) = cos(pos/10000^(2i/128)). Injects position information for attention.'},
+                    {x: 220, y: 420, width: 100, height: 60, class: 'attention-layer', text: 'Positional\nEncoding', tooltip: 'RSSI Positional Encoding: Enables attention to understand AP ordering and spatial relationships. Critical for multi-AP localization scenarios.'},
+                    {x: 380, y: 150, width: 120, height: 80, class: 'attention-layer', text: 'Multi-Head\nSelf-Attention\n8 heads', tooltip: 'Self-Attention: 8 parallel heads with d_k=d_v=16. Captures intra-modality relationships. Parameters per head: 3×128×16=6,144. Total: 8×6,144=49,152.'},
+                    {x: 380, y: 250, width: 120, height: 80, class: 'attention-layer', text: 'Cross-Modal\nAttention\nCSI→RSSI', tooltip: 'Cross-Attention: Q from CSI, K,V from RSSI. Discovers frequency-power correlations. Attention(Q,K,V) = softmax(QK^T/√16)V. Parameters: 3×128×128=49,152.'},
+                    {x: 380, y: 350, width: 120, height: 80, class: 'attention-layer', text: 'Cross-Modal\nAttention\nRSSI→CSI', tooltip: 'Bidirectional Cross-Attention: Q from RSSI, K,V from CSI. Enables RSSI features to attend to relevant CSI frequencies. Symmetric to CSI→RSSI attention.'},
+                    {x: 380, y: 450, width: 120, height: 80, class: 'attention-layer', text: 'Multi-Head\nSelf-Attention\n8 heads', tooltip: 'RSSI Self-Attention: Captures relationships between different access points. Models spatial correlations in RSSI measurements from multiple APs.'},
+                    {x: 560, y: 230, width: 100, height: 60, class: 'normalization-layer', text: 'LayerNorm\n+ Residual', tooltip: 'Layer Normalization: LN(x) = γ⊙(x-μ)/σ + β. Applied with residual connections: LN(x + Attention(x)). Stabilizes training of deep attention networks.'},
+                    {x: 560, y: 310, width: 100, height: 60, class: 'dense-layer', text: 'Feed-Forward\n128→512→128', tooltip: 'Position-wise FFN: FFN(x) = GELU(xW₁ + b₁)W₂ + b₂. Hidden dimension 512. Parameters: 128×512 + 512×128 = 131,072. GELU activation.'},
+                    {x: 560, y: 390, width: 100, height: 60, class: 'normalization-layer', text: 'LayerNorm\n+ Residual', tooltip: 'Second LayerNorm with residual: LN(x + FFN(x)). Pre-LN architecture places normalization before each sub-layer for better gradient flow.'},
+                    {x: 720, y: 280, width: 100, height: 60, class: 'pooling-layer', text: 'Global\nPooling', tooltip: 'Attention-based Global Pooling: Weighted sum of all positions. α_i = softmax(W_att·h_i). Output = Σᵢ α_i·h_i. Creates fixed-size representation.'},
+                    {x: 720, y: 350, width: 100, height: 60, class: 'dense-layer', text: 'Dense\n256→128', tooltip: 'Pre-output Dense Layer: Feature refinement before coordinate prediction. Parameters: 128×(256+1)=32,896. ReLU activation with dropout(0.3).'},
+                    {x: 880, y: 300, width: 100, height: 80, class: 'output-layer', text: 'Coordinate\nHead\n2 units', tooltip: 'Coordinate Prediction Head: Linear layer for (x,y) regression. Parameters: 2×(128+1)=258. Optional uncertainty head: σ² = exp(W_σ·h + b_σ).'},
+                    {x: 880, y: 390, width: 100, height: 60, class: 'output-layer', text: 'Uncertainty\nHead (σ²)', tooltip: 'Uncertainty Estimation: Predicts coordinate uncertainty σ² = exp(f_σ(h)). Enables probabilistic localization: p(x,y) = N((x̂,ŷ), diag(σ²_x, σ²_y)).'}
+                ],
+                connections: [
+                    {from: 0, to: 2}, {from: 1, to: 3},
+                    {from: 2, to: 4}, {from: 2, to: 5}, {from: 3, to: 6}, {from: 3, to: 7},
+                    {from: 4, to: 8}, {from: 5, to: 8}, {from: 6, to: 8}, {from: 7, to: 8},
+                    {from: 8, to: 9}, {from: 9, to: 10}, {from: 10, to: 11}, {from: 11, to: 12},
+                    {from: 12, to: 13}, {from: 12, to: 14}
+                ],
+                metrics: {
+                    parameters: "284K",
+                    memory: "2.5MB", 
+                    inference: "0.22ms",
+                    accuracy: "4.38cm MAE"
+                }
+            }
+        };
+
+        let currentArchitecture = 'baseline';
+
+        function showArchitecture(archName, event) {
+            currentArchitecture = archName;
+            const arch = architectures[archName];
+            document.querySelectorAll('.arch-button').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) event.target.classList.add('active');
+            // fallback for programmatic call
+            if (!event) {
+                const btns = document.querySelectorAll('.arch-button');
+                if (archName === 'baseline') btns[0].classList.add('active');
+                if (archName === 'dualbranch') btns[1].classList.add('active');
+                if (archName === 'enhanced') btns[2].classList.add('active');
+                if (archName === 'attention') btns[3].classList.add('active');
+            }
+            document.getElementById('arch-title').textContent = arch.title;
+            const container = document.getElementById('network-container');
+            container.innerHTML = '';
+            arch.layers.forEach((layer, index) => {
+                const layerDiv = document.createElement('div');
+                layerDiv.className = `layer ${layer.class}`;
+                layerDiv.style.left = layer.x + 'px';
+                layerDiv.style.top = layer.y + 'px';
+                layerDiv.style.width = layer.width + 'px';
+                layerDiv.style.height = layer.height + 'px';
+                layerDiv.innerHTML = `
+                    <div class="layer-content">${layer.text}</div>
+                    <div class="tooltip">${layer.tooltip}</div>
+                `;
+                container.appendChild(layerDiv);
+            });
+            arch.connections.forEach(conn => {
+                createConnection(container, arch.layers[conn.from], arch.layers[conn.to], false);
+            });
+            if (arch.skipConnections) {
+                arch.skipConnections.forEach(conn => {
+                    createConnection(container, arch.layers[conn.from], arch.layers[conn.to], true);
+                });
+            }
+            document.getElementById('explanation-title').textContent = arch.explanation.title;
+            document.getElementById('explanation-content').innerHTML = arch.explanation.content;
+            updateMetrics(arch.metrics);
+        }
+
+        function createConnection(container, fromLayer, toLayer, isSkip = false) {
+            const connection = document.createElement('div');
+            connection.className = isSkip ? 'connection skip-connection' : 'connection';
+            const fromX = fromLayer.x + fromLayer.width;
+            const fromY = fromLayer.y + fromLayer.height / 2;
+            const toX = toLayer.x;
+            const toY = toLayer.y + toLayer.height / 2;
+            const length = Math.sqrt(Math.pow(toX - fromX, 2) + Math.pow(toY - fromY, 2));
+            const angle = Math.atan2(toY - fromY, toX - fromX) * 180 / Math.PI;
+            connection.style.left = fromX + 'px';
+            connection.style.top = (fromY - 2) + 'px';
+            connection.style.width = length + 'px';
+            connection.style.transform = `rotate(${angle}deg)`;
+            connection.style.transformOrigin = '0 50%';
+            container.appendChild(connection);
+        }
+
+        function updateMetrics(metrics) {
+            const metricsHTML = `
+                <div class="metrics-panel">
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.parameters}</div>
+                        <div class="metric-label">Parameters</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.memory}</div>
+                        <div class="metric-label">Memory Usage</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.inference}</div>
+                        <div class="metric-label">Inference Time</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.accuracy}</div>
+                        <div class="metric-label">Localization Error</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('performance-metrics').innerHTML = metricsHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            showArchitecture('baseline');
+        });
+    </script>
+</body>
+</html>

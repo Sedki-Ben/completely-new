@@ -1,0 +1,233 @@
+Model: "model"
+__________________________________________________________________________________________________
+ Layer (type)                Output Shape                 Param #   Connected to                  
+==================================================================================================
+ csi_input (InputLayer)      [(None, 52, 1)]              0         []                            
+                                                                                                  
+ conv1d (Conv1D)             (None, 52, 32)               128       ['csi_input[0][0]']           
+                                                                                                  
+ batch_normalization (Batch  (None, 52, 32)               128       ['conv1d[0][0]']              
+ Normalization)                                                                                   
+                                                                                                  
+ max_pooling1d (MaxPooling1  (None, 26, 32)               0         ['batch_normalization[0][0]'] 
+ D)                                                                                               
+                                                                                                  
+ conv1d_2 (Conv1D)           (None, 26, 24)               792       ['max_pooling1d[0][0]']       
+                                                                                                  
+ conv1d_4 (Conv1D)           (None, 26, 24)               792       ['max_pooling1d[0][0]']       
+                                                                                                  
+ conv1d_6 (Conv1D)           (None, 26, 16)               528       ['max_pooling1d[0][0]']       
+                                                                                                  
+ batch_normalization_2 (Bat  (None, 26, 24)               96        ['conv1d_2[0][0]']            
+ chNormalization)                                                                                 
+                                                                                                  
+ batch_normalization_4 (Bat  (None, 26, 24)               96        ['conv1d_4[0][0]']            
+ chNormalization)                                                                                 
+                                                                                                  
+ batch_normalization_6 (Bat  (None, 26, 16)               64        ['conv1d_6[0][0]']            
+ chNormalization)                                                                                 
+                                                                                                  
+ max_pooling1d_1 (MaxPoolin  (None, 26, 32)               0         ['max_pooling1d[0][0]']       
+ g1D)                                                                                             
+                                                                                                  
+ conv1d_1 (Conv1D)           (None, 26, 16)               528       ['max_pooling1d[0][0]']       
+                                                                                                  
+ conv1d_3 (Conv1D)           (None, 26, 24)               1752      ['batch_normalization_2[0][0]'
+                                                                    ]                             
+                                                                                                  
+ conv1d_5 (Conv1D)           (None, 26, 24)               2904      ['batch_normalization_4[0][0]'
+                                                                    ]                             
+                                                                                                  
+ conv1d_7 (Conv1D)           (None, 26, 16)               1808      ['batch_normalization_6[0][0]'
+                                                                    ]                             
+                                                                                                  
+ conv1d_8 (Conv1D)           (None, 26, 16)               528       ['max_pooling1d_1[0][0]']     
+                                                                                                  
+ batch_normalization_1 (Bat  (None, 26, 16)               64        ['conv1d_1[0][0]']            
+ chNormalization)                                                                                 
+                                                                                                  
+ batch_normalization_3 (Bat  (None, 26, 24)               96        ['conv1d_3[0][0]']            
+ chNormalization)                                                                                 
+                                                                                                  
+ batch_normalization_5 (Bat  (None, 26, 24)               96        ['conv1d_5[0][0]']            
+ chNormalization)                                                                                 
+                                                                                                  
+ batch_normalization_7 (Bat  (None, 26, 16)               64        ['conv1d_7[0][0]']            
+ chNormalization)                                                                                 
+                                                                                                  
+ batch_normalization_8 (Bat  (None, 26, 16)               64        ['conv1d_8[0][0]']            
+ chNormalization)                                                                                 
+                                                                                                  
+ concatenate (Concatenate)   (None, 26, 96)               0         ['batch_normalization_1[0][0]'
+                                                                    , 'batch_normalization_3[0][0]
+                                                                    ',                            
+                                                                     'batch_normalization_5[0][0]'
+                                                                    , 'batch_normalization_7[0][0]
+                                                                    ',                            
+                                                                     'batch_normalization_8[0][0]'
+                                                                    ]                             
+                                                                                                  
+ max_pooling1d_2 (MaxPoolin  (None, 13, 96)               0         ['concatenate[0][0]']         
+ g1D)                                                                                             
+                                                                                                  
+ conv1d_10 (Conv1D)          (None, 13, 48)               4656      ['max_pooling1d_2[0][0]']     
+                                                                                                  
+ conv1d_12 (Conv1D)          (None, 13, 48)               4656      ['max_pooling1d_2[0][0]']     
+                                                                                                  
+ conv1d_14 (Conv1D)          (None, 13, 32)               3104      ['max_pooling1d_2[0][0]']     
+                                                                                                  
+ batch_normalization_10 (Ba  (None, 13, 48)               192       ['conv1d_10[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ batch_normalization_12 (Ba  (None, 13, 48)               192       ['conv1d_12[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ batch_normalization_14 (Ba  (None, 13, 32)               128       ['conv1d_14[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ max_pooling1d_3 (MaxPoolin  (None, 13, 96)               0         ['max_pooling1d_2[0][0]']     
+ g1D)                                                                                             
+                                                                                                  
+ conv1d_9 (Conv1D)           (None, 13, 32)               3104      ['max_pooling1d_2[0][0]']     
+                                                                                                  
+ conv1d_11 (Conv1D)          (None, 13, 48)               6960      ['batch_normalization_10[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_13 (Conv1D)          (None, 13, 48)               11568     ['batch_normalization_12[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_15 (Conv1D)          (None, 13, 32)               7200      ['batch_normalization_14[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_16 (Conv1D)          (None, 13, 32)               3104      ['max_pooling1d_3[0][0]']     
+                                                                                                  
+ batch_normalization_9 (Bat  (None, 13, 32)               128       ['conv1d_9[0][0]']            
+ chNormalization)                                                                                 
+                                                                                                  
+ batch_normalization_11 (Ba  (None, 13, 48)               192       ['conv1d_11[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ batch_normalization_13 (Ba  (None, 13, 48)               192       ['conv1d_13[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ batch_normalization_15 (Ba  (None, 13, 32)               128       ['conv1d_15[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ batch_normalization_16 (Ba  (None, 13, 32)               128       ['conv1d_16[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ concatenate_1 (Concatenate  (None, 13, 192)              0         ['batch_normalization_9[0][0]'
+ )                                                                  , 'batch_normalization_11[0][0
+                                                                    ]',                           
+                                                                     'batch_normalization_13[0][0]
+                                                                    ',                            
+                                                                     'batch_normalization_15[0][0]
+                                                                    ',                            
+                                                                     'batch_normalization_16[0][0]
+                                                                    ']                            
+                                                                                                  
+ max_pooling1d_4 (MaxPoolin  (None, 6, 192)               0         ['concatenate_1[0][0]']       
+ g1D)                                                                                             
+                                                                                                  
+ conv1d_19 (Conv1D)          (None, 6, 48)                9264      ['max_pooling1d_4[0][0]']     
+                                                                                                  
+ conv1d_21 (Conv1D)          (None, 6, 48)                9264      ['max_pooling1d_4[0][0]']     
+                                                                                                  
+ conv1d_23 (Conv1D)          (None, 6, 32)                6176      ['max_pooling1d_4[0][0]']     
+                                                                                                  
+ batch_normalization_18 (Ba  (None, 6, 48)                192       ['conv1d_19[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ batch_normalization_20 (Ba  (None, 6, 48)                192       ['conv1d_21[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ batch_normalization_22 (Ba  (None, 6, 32)                128       ['conv1d_23[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ max_pooling1d_5 (MaxPoolin  (None, 6, 192)               0         ['max_pooling1d_4[0][0]']     
+ g1D)                                                                                             
+                                                                                                  
+ conv1d_18 (Conv1D)          (None, 6, 32)                6176      ['max_pooling1d_4[0][0]']     
+                                                                                                  
+ conv1d_20 (Conv1D)          (None, 6, 48)                6960      ['batch_normalization_18[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_22 (Conv1D)          (None, 6, 48)                11568     ['batch_normalization_20[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_24 (Conv1D)          (None, 6, 32)                7200      ['batch_normalization_22[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_25 (Conv1D)          (None, 6, 16)                3088      ['max_pooling1d_5[0][0]']     
+                                                                                                  
+ batch_normalization_17 (Ba  (None, 6, 32)                128       ['conv1d_18[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ batch_normalization_19 (Ba  (None, 6, 48)                192       ['conv1d_20[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ batch_normalization_21 (Ba  (None, 6, 48)                192       ['conv1d_22[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ batch_normalization_23 (Ba  (None, 6, 32)                128       ['conv1d_24[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ batch_normalization_24 (Ba  (None, 6, 16)                64        ['conv1d_25[0][0]']           
+ tchNormalization)                                                                                
+                                                                                                  
+ rssi_input (InputLayer)     [(None, 1)]                  0         []                            
+                                                                                                  
+ concatenate_2 (Concatenate  (None, 6, 176)               0         ['batch_normalization_17[0][0]
+ )                                                                  ',                            
+                                                                     'batch_normalization_19[0][0]
+                                                                    ',                            
+                                                                     'batch_normalization_21[0][0]
+                                                                    ',                            
+                                                                     'batch_normalization_23[0][0]
+                                                                    ',                            
+                                                                     'batch_normalization_24[0][0]
+                                                                    ']                            
+                                                                                                  
+ conv1d_17 (Conv1D)          (None, 6, 176)               33968     ['max_pooling1d_4[0][0]']     
+                                                                                                  
+ dense (Dense)               (None, 16)                   32        ['rssi_input[0][0]']          
+                                                                                                  
+ add (Add)                   (None, 6, 176)               0         ['concatenate_2[0][0]',       
+                                                                     'conv1d_17[0][0]']           
+                                                                                                  
+ batch_normalization_25 (Ba  (None, 16)                   64        ['dense[0][0]']               
+ tchNormalization)                                                                                
+                                                                                                  
+ global_average_pooling1d (  (None, 176)                  0         ['add[0][0]']                 
+ GlobalAveragePooling1D)                                                                          
+                                                                                                  
+ dropout (Dropout)           (None, 16)                   0         ['batch_normalization_25[0][0]
+                                                                    ']                            
+                                                                                                  
+ concatenate_3 (Concatenate  (None, 192)                  0         ['global_average_pooling1d[0][
+ )                                                                  0]',                          
+                                                                     'dropout[0][0]']             
+                                                                                                  
+ dense_1 (Dense)             (None, 128)                  24704     ['concatenate_3[0][0]']       
+                                                                                                  
+ batch_normalization_26 (Ba  (None, 128)                  512       ['dense_1[0][0]']             
+ tchNormalization)                                                                                
+                                                                                                  
+ dropout_1 (Dropout)         (None, 128)                  0         ['batch_normalization_26[0][0]
+                                                                    ']                            
+                                                                                                  
+ dense_2 (Dense)             (None, 64)                   8256      ['dropout_1[0][0]']           
+                                                                                                  
+ batch_normalization_27 (Ba  (None, 64)                   256       ['dense_2[0][0]']             
+ tchNormalization)                                                                                
+                                                                                                  
+ dropout_2 (Dropout)         (None, 64)                   0         ['batch_normalization_27[0][0]
+                                                                    ']                            
+                                                                                                  
+ dense_3 (Dense)             (None, 2)                    130       ['dropout_2[0][0]']           
+                                                                                                  
+==================================================================================================
+Total params: 184994 (722.63 KB)
+Trainable params: 182946 (714.63 KB)
+Non-trainable params: 2048 (8.00 KB)
+__________________________________________________________________________________________________

@@ -1,0 +1,8 @@
+MSIN Model Test Results
+MAE: 0.0316 meters
+MAE_X: 0.0451 meters
+MAE_Y: 0.0181 meters
+R²: 0.9859
+Average Point Error: 0.0563 meters
+Max Point Error: 0.3933 meters
+Min Point Error: 0.0001 meters
